@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 contract Cyberfrens is ERC721Enumerable {
   /**
@@ -19,6 +20,9 @@ contract Cyberfrens is ERC721Enumerable {
   uint256 public tokenPriceInWei;
   string public baseURI;
   bool public isMintPaused = true;
+  //whitelisting
+  bytes32 public merkleRoot;
+  mapping(address => bool) public whitelistClaimed;
   /**
   @dev minters store
  */
@@ -93,6 +97,10 @@ contract Cyberfrens is ERC721Enumerable {
     return string(abi.encodePacked(baseURI, "/nfts/", Strings.toString(_tokenId)));
   }
 
+  function setMerkleRoot(bytes32 _newMerkleRoot) public onlyAdmin {
+    merkleRoot = _newMerkleRoot;
+  }
+
   /**
   @dev Mint Functions
  */
@@ -100,17 +108,21 @@ contract Cyberfrens is ERC721Enumerable {
   function _mintToken(address _to) internal returns (uint256 _tokenId) {
     uint256 tokenIdToBe = nextTokenId;
     nextTokenId += 1;
+    whitelistClaimed[msg.sender] = true;
     _mint(_to, tokenIdToBe);
     tokenIdToMinterAddress[tokenIdToBe] = _to;
     emit Mint(_to, tokenIdToBe);
     return tokenIdToBe;
   }
 
-  function mintFriend() public payable returns (uint256 _tokenId) {
-    return mintFriendTo(msg.sender);
+  function mintFriend(bytes32[] calldata _merkleProof) public payable returns (uint256 _tokenId) {
+    return mintFriendTo(msg.sender, _merkleProof);
   }
 
-  function mintFriendTo(address _to) public payable returns (uint256 _tokenId) {
+  function mintFriendTo(address _to, bytes32[] calldata _merkleProof) public payable returns (uint256 _tokenId) {
+    require(!whitelistClaimed[msg.sender], "Address already claimed");
+    bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+    require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), "invalid proof");
     require(msg.value >= tokenPriceInWei, "Must send at least current price for token");
     require(nextTokenId <= maxMint, "Must not exceed maximum mint");
     require(!isMintPaused || msg.sender == admin, "Purchases must not be paused");
