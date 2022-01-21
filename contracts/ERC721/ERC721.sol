@@ -111,7 +111,7 @@ contract Cyberfrens is ERC721Enumerable {
   }
 
   function mintFriendTo(address _to) public payable returns (uint256 _tokenId) {
-    require(msg.value >= tokenPriceInWei, "Must send at least current price for token");
+    require(msg.value >= tokenPriceInWei, "Must send at least current token price");
     require(nextTokenId <= maxMint, "Must not exceed maximum mint");
     require(!isMintPaused || msg.sender == admin, "Purchases must not be paused");
     uint256 tokenId = _mintToken(_to);
@@ -119,37 +119,5 @@ contract Cyberfrens is ERC721Enumerable {
     return tokenId;
   }
 
-  /**
-    @dev anySwap
-     */
 
-  function updateRouter(address _router) external onlyAdmin {
-    router = _router;
-  }
-
-  function _safeMigrationMint(
-    address _router,
-    uint256 _tokenId,
-    address _to
-  ) internal {
-    _safeMint(_router, _tokenId);
-    emit Migration(_to, _tokenId);
-  }
-
-  function safeTransferFrom(
-    address from,
-    address to,
-    uint256 tokenId,
-    bytes memory data
-  ) public virtual override {
-    if (_msgSender() == router && from == router && to != router && !_exists(tokenId)) {
-      require(tokenId > 0, "Token ID invalid");
-      _safeMigrationMint(router, tokenId, to);
-    }
-    require(
-      _isApprovedOrOwner(_msgSender(), tokenId),
-      "ERC721: transfer caller is not owner nor approved"
-    );
-    _safeTransfer(from, to, tokenId, data);
-  }
 }
