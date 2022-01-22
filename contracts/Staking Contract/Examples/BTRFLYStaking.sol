@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-pragma solidity 0.7.5;
+pragma solidity 0.8.0;
+
+
 
 library SafeMath {
     /**
@@ -537,7 +539,7 @@ interface IDistributor {
     function distribute() external returns ( bool );
 }
 
-contract REDACTEDStaking is Ownable {
+contract Staking is Ownable {
 
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
