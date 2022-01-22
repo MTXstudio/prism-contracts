@@ -1,13 +1,7 @@
-#  Smart Contracts That Power the Redacted Cartel Protocol🦋:
-
-Here are the contracts that power REDACTED V1. Our V1 is a friendly fork of OHM, however, it contains a handful of key differences:
-- Reserve assets have variable values (that can be set by calling setFloor() within our treasury)
-- Bond contracts have been designed to return fees to Olympus
-- Different bonding calculators due to our main LP pair being between 2 9dp coins, as opposed to a 9dp/18dp pair
 
 ## Tech
 
-Redacted Cartel  uses a number of open source projects to work properly:
+Cyberfrens  uses a number of open source projects to work properly:
 
 - Hardhat - Ethereum development environment.
 - Typescript - Strongly Typed JS
@@ -15,11 +9,9 @@ Redacted Cartel  uses a number of open source projects to work properly:
 - Node - JS runtime
 
 
-And of course Redacted Cartel itself is open source with a public repository on GitHub.
-
 ## Installation
 
-Redacted Smart Contracts requires [Node.js](https://nodejs.org/) v10+ to run.
+Cyberfrens Smart Contracts requires [Node.js](https://nodejs.org/) v10+ to run.
 
 Install the dependencies and devDependencies and start the server.
 
@@ -31,23 +23,8 @@ yarn install
 
 ## Deployed Contracts
 
-
-
 | Contract Name | Address |
-| ------ | ------ |
-| PBTRFLY | 0x57503824e256e878db8136fde66f155c49e362df |
-| BTRFLY | 0xc0d4ceb216b3ba9c3701b291766fdcba977cec3a |
-| xBTRFLY | 0xCC94Faf235cC5D3Bf4bEd3a30db5984306c86aBC |
-| Treasury | 0x086C98855dF3C78C6b481b6e1D47BeF42E9aC36B |
-| REDACTEDBondingCalculator | 0xCA1d53E40eab232DEff03Dc824410100BcCCF2bC |
-|Staking Distributor|0xB2120AE79d838d6703Cf6d2ac5cC68b5DB10683F |
-| Staking | 0xBdE4Dfb0dbb0Dd8833eFb6C5BD0Ce048C852C487 |
-| Warmup | 0x7521C8c7ba7e1F650c1109c40876C5Dd52f5614c |
-| Staking Helper | 0xC0840Ec5527d3e70d66AE6575642916F3Fd18aDf |
-| BtrflyOhmBondingCalculator | 0xa77b57445FA262CaE325DeD434Df89302c93f59A|
-| LP Bond (OHM / BTRFLY) | 0x1fDf1233f85A3BAe9594B0558e4EC8Febe8c6720|
-| CVX Bond | 0xe2eF3B60B0B3087cf1d1179D899a7cD7a11a9fCa|
-| CRV Bond | 0x765c7cfed02f2d9583eac8229930f3650af42c77|
+
 
 
 ## Development
