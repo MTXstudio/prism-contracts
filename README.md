@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 ## Tech
 
@@ -64,3 +65,7 @@ npx solhint 'contracts/**/*.sol' --fix
 [//]: # 
    [node.js]: <http://nodejs.org>
 
+=======
+# prism-contracts
+prism contracts
+>>>>>>> efa1e7f8dc6f6306a6bf899e63531f90a75913d1
