@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.1;
+pragma solidity 0.8.1;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
@@ -808,7 +808,7 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
 
   struct Collection {
     string name;
-    uint256 id; // --> add this to creation  function
+    uint256 id;
     uint256 projectId;
     uint256 royalties; // in 1000th e.g. 1000 for 10%
     address manager; // gets royalties 
@@ -822,6 +822,7 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
   struct Token {
     uint256 id;
     string name;
+    address creator;
     uint256 maxSupply;
     uint256 priceInWei;
     uint256 projectId;
@@ -988,6 +989,7 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
       Token memory token;
       token.id = nextTokenId;
       token.name = _name[i];
+      token.creator = _msgSender();
       token.projectId = collections[_collectionId[i]].projectId;
       token.collectionId = _collectionId[i];
       token.priceInWei = _price[i];
@@ -1103,6 +1105,7 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
     collection.royalties = _royaltiesInBasePoints;
     collection.paused = true;
     collection.locked = false;
+    collection.id = nextCollectionId;
     collections[nextCollectionId] = collection;
     projectIdToCollection[_projectId].push(collection); 
     addressToCollections[_manager].push(collection);
