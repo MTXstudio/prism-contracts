@@ -713,17 +713,18 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     
     for (uint256 i=0;i < masterToTraits[_mNftId].length; i++){
       addressToTokenIdToUsed[_msgSender()][masterToTraits[_mNftId][i]]--;
-      delete masterToTraits[_mNftId][i];}
+    }
 
     for (uint256 k=0;k < _traitIds.length; k++){
-      require(balanceOf(_msgSender(), _traitIds[k]) > addressToTokenIdToUsed[_msgSender()][_traitIds[k]], "Trait must not be used");
+      require(balanceOf(_msgSender(), _traitIds[k]) > addressToTokenIdToUsed[_msgSender()][_traitIds[k]], "Must own and not use trait");
       
       addressToTokenIdToUsed[_msgSender()][_traitIds[k]]++;
-      masterToTraits[_mNftId].push(_traitIds[k]);
+
       }
+      masterToTraits[_mNftId] = _traitIds;
       MasterEdit(_mNftId, masterToTraits[_mNftId]);
-      return masterToTraits[_mNftId];  
-  }  
+      return masterToTraits[_mNftId];   
+  } 
 
 
   function createBatchTokens(

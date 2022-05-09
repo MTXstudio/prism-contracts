@@ -100,7 +100,23 @@ describe('Prism', () => {
     
     expect(await nftTokens.balanceOf(collectionManager.address,2)).equal(3) 
     expect(await nftTokens.balanceOf(collectionManager.address,3)).equal(1)
+
+    expect((await nftTokens.traitsOfMaster(3))[0].eq(2))
+    expect((await nftTokens.traitsOfMaster(3))[1].eq(2))
+    expect((await nftTokens.traitsOfMaster(3))[2].eq(2))
   });
+
+  it('unequip trait from MasterNFT', async () => {
+    
+    await nftTokens.mintBatch([1,2,3],[1,3,1],collectionManager.address,[])
+    await (await nftTokens.connect(collectionManager).editMaster(3,[2,2,2]))
+    await (await nftTokens.connect(collectionManager).editMaster(3,[2,2]))
+    
+    expect((await nftTokens.traitsOfMaster(3))[0].eq(2))
+    expect((await nftTokens.traitsOfMaster(3))[1].eq(2))
+    expect((await nftTokens.traitsOfMaster(3))[2]).equal(undefined)
+  });
+
 
 
   it('unpause collection and token', async () => {
