@@ -1,262 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.1;
+pragma solidity 0.8.1;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-
-
-/**
- * @dev Collection of functions related to the address type
- */
-library Address {
-  /**
-    * @dev Returns true if `account` is a contract.
-    *
-    * [IMPORTANT]
-    * ====
-    * It is unsafe to assume that an address for which this function returns
-    * false is an externally-owned account (EOA) and not a contract.
-    *
-    * Among others, `isContract` will return false for the following
-    * types of addresses:
-    *
-    *  - an externally-owned account
-    *  - a contract in construction
-    *  - an address where a contract will be created
-    *  - an address where a contract lived, but was destroyed
-    * ====
-    *
-    * [IMPORTANT]
-    * ====
-    * You shouldn't rely on `isContract` to protect against flash loan attacks!
-    *
-    * Preventing calls from contracts is highly discouraged. It breaks composability, breaks support for smart wallets
-    * like Gnosis Safe, and does not provide security since it can be circumvented by calling from a contract
-    * constructor.
-    * ====
-    */
-  function isContract(address account) public view returns (bool) {
-      // This method relies on extcodesize/address.code.length, which returns 0
-      // for contracts in construction, since the code is only stored at the end
-      // of the constructor execution.
-
-      return account.code.length > 0;
-  }
-
-  /**
-    * @dev Replacement for Solidity's `transfer`: sends `amount` wei to
-    * `recipient`, forwarding all available gas and reverting on errors.
-    *
-    * https://eips.ethereum.org/EIPS/eip-1884[EIP1884] increases the gas cost
-    * of certain opcodes, possibly making contracts go over the 2300 gas limit
-    * imposed by `transfer`, making them unable to receive funds via
-    * `transfer`. {sendValue} removes this limitation.
-    *
-    * https://diligence.consensys.net/posts/2019/09/stop-using-soliditys-transfer-now/[Learn more].
-    *
-    * IMPORTANT: because control is transferred to `recipient`, care must be
-    * taken to not create reentrancy vulnerabilities. Consider using
-    * {ReentrancyGuard} or the
-    * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].
-    */
-  function sendValue(address payable recipient, uint256 amount) public {
-      require(address(this).balance >= amount, "Address: insufficient balance");
-
-      (bool success, ) = recipient.call{value: amount}("");
-      require(success, "Address: unable to send value, recipient may have reverted");
-  }
-
-  /**
-    * @dev Performs a Solidity function call using a low level `call`. A
-    * plain `call` is an unsafe replacement for a function call: use this
-    * function instead.
-    *
-    * If `target` reverts with a revert reason, it is bubbled up by this
-    * function (like regular Solidity function calls).
-    *
-    * Returns the raw returned data. To convert to the expected return value,
-    * use https://solidity.readthedocs.io/en/latest/units-and-global-variables.html?highlight=abi.decode#abi-encoding-and-decoding-functions[`abi.decode`].
-    *
-    * Requirements:
-    *
-    * - `target` must be a contract.
-    * - calling `target` with `data` must not revert.
-    *
-    * _Available since v3.1._
-    */
-  function functionCall(address target, bytes memory data) public returns (bytes memory) {
-      return functionCall(target, data, "Address: low-level call failed");
-  }
-
-  /**
-    * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`], but with
-    * `errorMessage` as a fallback revert reason when `target` reverts.
-    *
-    * _Available since v3.1._
-    */
-  function functionCall(
-      address target,
-      bytes memory data,
-      string memory errorMessage
-    ) public returns (bytes memory) {
-        return functionCallWithValue(target, data, 0, errorMessage);
-    }
-
-
-  /**
-    * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
-    * but also transferring `value` wei to `target`.
-    *
-    * Requirements:
-    *
-    * - the calling contract must have an ETH balance of at least `value`.
-    * - the called Solidity function must be `payable`.
-    *
-    * _Available since v3.1._
-    */
-  function functionCallWithValue(
-      address target,
-      bytes memory data,
-      uint256 value
-    ) public returns (bytes memory) {
-        return functionCallWithValue(target, data, value, "Address: low-level call with value failed");
-    }
-
-  /**
-    * @dev Same as {xref-Address-functionCallWithValue-address-bytes-uint256-}[`functionCallWithValue`], but
-    * with `errorMessage` as a fallback revert reason when `target` reverts.
-    *
-    * _Available since v3.1._
-    */
-  function functionCallWithValue(
-      address target,
-      bytes memory data,
-      uint256 value,
-      string memory errorMessage
-  ) public returns (bytes memory) {
-      require(address(this).balance >= value, "Address: insufficient balance for call");
-      require(isContract(target), "Address: call to non-contract");
-
-      (bool success, bytes memory returndata) = target.call{value: value}(data);
-      return verifyCallResult(success, returndata, errorMessage);
-  }
-
-  /**
-    * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
-    * but performing a static call.
-    *
-    * _Available since v3.3._
-    */
-  function functionStaticCall(address target, bytes memory data) internal view returns (bytes memory) {
-      return functionStaticCall(target, data, "Address: low-level static call failed");
-  }
-
-  /**
-    * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
-    * but performing a static call.
-    *
-    * _Available since v3.3._
-    */
-  function functionStaticCall(
-      address target,
-      bytes memory data,
-      string memory errorMessage
-    ) public view returns (bytes memory) {
-        require(isContract(target), "Address: static call to non-contract");
-
-        (bool success, bytes memory returndata) = target.staticcall(data);
-        return verifyCallResult(success, returndata, errorMessage);
-    }
-
-  /**
-    * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
-    * but performing a delegate call.
-    *
-    * _Available since v3.4._
-    */
-  function functionDelegateCall(address target, bytes memory data) public returns (bytes memory) {
-      return functionDelegateCall(target, data, "Address: low-level delegate call failed");
-  }
-
-  /**
-    * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
-    * but performing a delegate call.
-    *
-    * _Available since v3.4._
-    */
-  function functionDelegateCall(
-      address target,
-      bytes memory data,
-      string memory errorMessage
-      ) public returns (bytes memory) {
-          require(isContract(target), "Address: delegate call to non-contract");
-
-          (bool success, bytes memory returndata) = target.delegatecall(data);
-          return verifyCallResult(success, returndata, errorMessage);
-      }
-
-
-  /**
-    * @dev Tool to verifies that a low level call was successful, and revert if it wasn't, either by bubbling the
-    * revert reason using the provided one.
-    *
-    * _Available since v4.3._
-    */
-  function verifyCallResult(
-      bool success,
-      bytes memory returndata,
-      string memory errorMessage
-    ) public pure returns (bytes memory) {
-      if (success) {
-          return returndata;
-      } else {
-          // Look for revert reason and bubble it up if present
-          if (returndata.length > 0) {
-              // The easiest way to bubble the revert reason is using memory via assembly
-
-              assembly {
-                  let returndata_size := mload(returndata)
-                  revert(add(32, returndata), returndata_size)
-              }
-          } else {
-              revert(errorMessage);
-          }
-      }
-  }
-}
-
-/**
- * @dev String operations.
- */
-library Strings {
-    bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
-
-    /**
-     * @dev Converts a `uint256` to its ASCII `string` decimal representation.
-     */
-    function toString(uint256 value) public pure returns (string memory) {
-        // Inspired by OraclizeAPI's implementation - MIT licence
-        // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol
-
-        if (value == 0) {
-            return "0";
-        }
-        uint256 temp = value;
-        uint256 digits;
-        while (temp != 0) {
-            digits++;
-            temp /= 10;
-        }
-        bytes memory buffer = new bytes(digits);
-        while (value != 0) {
-            digits -= 1;
-            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
-            value /= 10;
-        }
-        return string(buffer);
-    }
-}
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * @dev Contract module which provides a basic access control mechanism, where
@@ -349,11 +98,37 @@ interface IERC2981 is IERC165 {
 
 interface IPrismProject{
 
+  enum AssetType {MASTER, TRAIT, OTHER}
+
+  struct Collection {
+    string name;
+    uint256 id;
+    uint256 projectId;
+    uint256 royalties;
+    address manager;
+    uint256 invocations;
+    uint256 maxInvocations;
+    AssetType assetType;
+    bool paused; 
+  }
+
   function viewProjectChef(uint256 _id) external view returns (address _chef);
 
-  function checkTraitType(uint256 _id, string memory _traitType) external view returns(bool);
+  function checkTraitType(uint256 _id, string memory _traitType) external returns(bool);
 
+  function addInvocation(uint256 _collectionId, uint _amount) external;  
+
+  function viewProjectId(uint256 _id) external view returns(uint256 projectId);
+  function viewMaxInvocations(uint256 _id) external view returns(uint256 maxInvocations);
+  function viewInvocations(uint256 _id) external view returns(uint256 invocations);
+  function viewManager(uint256 _id) external view returns(address manager);
+  function viewRoyalties(uint256 _id) external view returns(uint256 royalties);
+  function viewPausedStatus (uint256 _id) external view returns(bool paused);
+  
 }
+
+
+
 
 /**
  * @dev Implementation of the basic standard multi-token.
@@ -453,7 +228,9 @@ contract ERC1155 is Context, IERC1155, IERC1155MetadataURI {
      * @dev See {IERC1155-setApprovalForAll}.
      */
     function setApprovalForAll(address operator, bool approved) public virtual override {
-        _setApprovalForAll(_msgSender(), operator, approved);
+      require(_msgSender() != operator, "ERC1155: setting approval status for self");
+      _operatorApprovals[_msgSender()][operator] = approved;
+      emit ApprovalForAll(_msgSender(), operator, approved);
     }
 
     /**
@@ -658,23 +435,6 @@ contract ERC1155 is Context, IERC1155, IERC1155MetadataURI {
         _doSafeBatchTransferAcceptanceCheck(operator, address(0), to, ids, amounts, data);
     }
 
-    
-
-    /**
-     * @dev Approve `operator` to operate on all of `owner` tokens
-     *
-     * Emits a {ApprovalForAll} event.
-     */
-    function _setApprovalForAll(
-        address owner,
-        address operator,
-        bool approved
-    ) internal virtual {
-        require(owner != operator, "ERC1155: setting approval status for self");
-        _operatorApprovals[owner][operator] = approved;
-        emit ApprovalForAll(owner, operator, approved);
-    }
-
     /**
      * @dev Hook that is called before any token transfer. This includes minting
      * and burning, as well as batched variants.
@@ -756,7 +516,7 @@ contract ERC1155 is Context, IERC1155, IERC1155MetadataURI {
     }
 }
 
-contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
+contract PrismToken is ERC1155, Ownable, IERC2981 {
   
  using Strings for uint256;
 
@@ -767,21 +527,16 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
   uint256 public nextTokenId = 1;
   uint256 public nextCollectionId = 1;
   uint256 public defaultRoyalty = 500;
+  uint256 private feeDenominator = 1000;
 
   string public collectionBaseURI;
-  enum AssetType { STANDARD , TRAIT , MASTER }
+  enum AssetType {MASTER, TRAIT, OTHER}
   
   /**
   @dev mappings
  */
   
-  //Project mappings
-  mapping (uint256 => Collection[]) private projectIdToCollection;
-  
-  
   //Collection mappings
-  mapping(uint256 => Collection) public collections;
-  mapping(address => Collection[]) private addressToCollections;
   mapping (uint256 => Token[]) private collectionIdToToken;
   
   
@@ -806,22 +561,10 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
   @dev structs
  */
 
-  struct Collection {
-    string name;
-    uint256 id; // --> add this to creation  function
-    uint256 projectId;
-    uint256 royalties; // in 1000th e.g. 1000 for 10%
-    address manager; // gets royalties 
-    uint256 invocations;
-    uint256 maxInvocations;
-    AssetType assetType;
-    bool paused;
-    bool locked;
-  }
-
   struct Token {
     uint256 id;
     string name;
+    address creator;
     uint256 maxSupply;
     uint256 priceInWei;
     uint256 projectId;
@@ -837,34 +580,43 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
   @dev modifiers
  */
 
-  modifier onlyOpenCollection(uint256 _collectionId, uint256 _amount) {
-    require(!collections[_collectionId].locked, "Only unlocked collections");
-    require(collections[_collectionId].invocations + _amount <= collections[_collectionId].maxInvocations, "Must not exceed max invocations");
-    require(!collections[_collectionId].paused || _msgSender() == collections[_collectionId].manager || _msgSender() == owner() , "Purchases must not paused");
+  modifier onlyOpenCollection(uint256 _id, uint256 _amount) {
+    uint256 _invocations = IPrismProject(prismProjectContract).viewInvocations(_id);
+    uint256 _maxInvocations = IPrismProject(prismProjectContract).viewMaxInvocations(_id);
+    bool _paused = IPrismProject(prismProjectContract).viewPausedStatus(_id);
+    address _manager = IPrismProject(prismProjectContract).viewManager(_id);
+    require(_invocations + _amount <= _maxInvocations, "Must not exceed max invocations");
+    require(!_paused || _msgSender() == _manager || _msgSender() == owner() , "Purchases must not paused");
     _;
   }
 
-  modifier onlyTokenPrice(uint256 _tokenId, uint256 _value) {
-      require(_value >= tokens[_tokenId].priceInWei,
+  modifier onlyTokenPrice(uint256 _id, uint256 _value) {
+      require(_value >= tokens[_id].priceInWei,
       "Must send >= current price"
     );
     _;
   }
 
-  modifier onlyAllowedToken(uint256 _tokenId, uint256 _amount) {
-      require(exists(_tokenId), "Token must exist");
-      require(tokens[_tokenId].maxSupply > totalSupply(_tokenId) + _amount ,"Must not reached max supply"); 
+  modifier onlyAllowedToken(uint256 _id, uint256 _amount) {
+      require(exists(_id), "Token must exist");
+      require(tokens[_id].maxSupply >= totalSupply(_id) + _amount ,"Must not reached max supply"); 
     _;
   }
 
-  modifier onlyTokenOwner(uint256 _tokenId) {
-      require(balanceOf(_msgSender(), _tokenId) > 0 , "Must own token");
+  modifier onlyTokenOwner(uint256 _id) {
+      require(balanceOf(_msgSender(), _id) > 0 , "Must own token");
     _;
   }
 
   modifier onlyChef(uint256 _projectId) {
       address _chef = IPrismProject(prismProjectContract).viewProjectChef(_projectId);
-      require(_chef == _msgSender() || _msgSender() == owner() , "Must own token");
+      require(_chef == _msgSender() || _msgSender() == owner() , "Must be project owner");
+    _;
+  }
+
+  modifier onlyManager(uint256 _collectionId) {
+    address _manager = IPrismProject(prismProjectContract).viewManager(_collectionId);
+      require(_manager == _msgSender() || _msgSender() == owner() , "Must manage collection");
     _;
   }
 
@@ -888,9 +640,10 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
   onlyOpenCollection(_collectionId, _amount)
   onlyAllowedToken(_tokenId, _amount)
   {
-    collections[_collectionId].invocations += _amount;
+    IPrismProject(prismProjectContract).addInvocation(_collectionId, _amount);
     _mint(_to, _tokenId, _amount,"");
   }
+
 
   function mintBatch(
         uint256[] memory _ids,
@@ -913,21 +666,22 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
   internal 
   onlyOpenCollection(tokens[_id].collectionId, _amount)
   onlyAllowedToken(_id, _amount)
+  onlyManager(tokens[_id].collectionId)
   {
-    require(collections[tokens[_id].collectionId].manager == _msgSender() || _msgSender() == owner() , "Must own token");
-    collections[tokens[_id].collectionId].invocations += _amount;
+    uint256 _collectionId = tokens[_id].collectionId;
+    IPrismProject(prismProjectContract).addInvocation(_collectionId, _amount);
   }
 
   /**
   @dev helpers 
  */
 
-  function _splitFunds(uint256 _tokenId) 
+  function _splitFunds(uint256 _id) 
     internal
-    onlyTokenPrice(_tokenId, msg.value)
+    onlyTokenPrice(_id, msg.value)
   {
     if (msg.value > 0) {
-      uint256 tokenPriceInWei = tokens[_tokenId].priceInWei;
+      uint256 tokenPriceInWei = tokens[_id].priceInWei;
       uint256 refund = msg.value - tokenPriceInWei;
       if (refund > 0) {
         payable(_msgSender()).transfer(refund);
@@ -959,20 +713,21 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
     
     for (uint256 i=0;i < masterToTraits[_mNftId].length; i++){
       addressToTokenIdToUsed[_msgSender()][masterToTraits[_mNftId][i]]--;
-      delete masterToTraits[_mNftId][i];}
+    }
 
     for (uint256 k=0;k < _traitIds.length; k++){
-      require(balanceOf(_msgSender(), _traitIds[k]) > addressToTokenIdToUsed[_msgSender()][_traitIds[k]], "Trait must not be used");
+      require(balanceOf(_msgSender(), _traitIds[k]) > addressToTokenIdToUsed[_msgSender()][_traitIds[k]], "Must own and not use trait");
       
       addressToTokenIdToUsed[_msgSender()][_traitIds[k]]++;
-      masterToTraits[_mNftId].push(_traitIds[k]);
+
       }
+      masterToTraits[_mNftId] = _traitIds;
       MasterEdit(_mNftId, masterToTraits[_mNftId]);
-      return masterToTraits[_mNftId];  
-  }  
+      return masterToTraits[_mNftId];   
+  } 
 
 
-  function createTokens(
+  function createBatchTokens(
     string[] memory _name, 
     uint256[] memory _price, 
     uint256[] memory _collectionId,
@@ -982,34 +737,51 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
     public 
   {
     for (uint256 i= 0; i < _name.length; i++) {
-      require(collections[_collectionId[i]].manager == _msgSender() || _msgSender() == owner() , "Must own token");
-      require(IPrismProject(prismProjectContract).checkTraitType(collections[_collectionId[i]].projectId, _traitType[i]), "TraitType must be in project" );
-      
-      Token memory token;
-      token.id = nextTokenId;
-      token.name = _name[i];
-      token.projectId = collections[_collectionId[i]].projectId;
-      token.collectionId = _collectionId[i];
-      token.priceInWei = _price[i];
-      token.maxSupply = _maxSupply[i]; 
-      token.traitType = _traitType[i];
-      token.assetType = _assetType[i];
-      token.paused = true;
-      token.locked = false;
-      tokens[nextTokenId] = token;
-
-      collectionIdToToken[_collectionId[i]].push(token);
-      emit TokenCreated(token.name, nextTokenId, token.projectId, token.collectionId, token.priceInWei, token.maxSupply, token.traitType, token.assetType, true);
-      nextTokenId++;   
+      createToken(_name[i], _price[i], _collectionId[i], _maxSupply[i], _traitType[i], _assetType[i]);
     }
   }
 
-  function exists(uint256 id) public view returns (bool) {
-      return tokens[id].maxSupply != 0;
+  function createToken(
+    string memory _name, 
+    uint256 _price, 
+    uint256 _collectionId,
+    uint256 _maxSupply, 
+    string memory _traitType,
+    AssetType _assetType) 
+    public
+    onlyManager(_collectionId)
+  {
+    uint256 _projectId = IPrismProject(prismProjectContract).viewProjectId(_collectionId);
+    require(IPrismProject(prismProjectContract).checkTraitType(_projectId, _traitType), "TraitType must be in project" );
+    Token memory token;
+    token.id = nextTokenId;
+    token.name = _name;
+    token.creator = _msgSender();
+    token.projectId = _projectId;
+    token.collectionId = _collectionId;
+    token.priceInWei = _price;
+    token.maxSupply = _maxSupply; 
+    token.traitType = _traitType;
+    token.assetType = _assetType;
+    token.paused = true;
+    token.locked = false;
+    tokens[nextTokenId] = token;
+
+    collectionIdToToken[_collectionId].push(token);
+    emit TokenCreated(token.name, nextTokenId, token.projectId, token.collectionId, token.priceInWei, token.maxSupply, token.traitType, token.assetType, true);
+    nextTokenId++; 
+  }
+
+  function exists(uint256 _id) public view returns (bool) {
+      return tokens[_id].maxSupply != 0;
     }
 
-  function lockToken(uint256 _tokenId) public onlyOwner {
-    tokens[_tokenId].locked = true;
+  function lockToken(uint256 _id) public onlyManager(tokens[_id].collectionId){
+    tokens[_id].locked = true;
+  }
+
+  function pauseToken(uint256 _id) public onlyManager(tokens[_id].collectionId) {
+    tokens[_id].paused = !tokens[_id].paused;
   }
 
   function editTokens(
@@ -1023,11 +795,11 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
     bool _paused) 
     public 
   {
-      require(collections[_collectionId].manager == _msgSender() || _msgSender() == owner() , "Must own token");
-      require(IPrismProject(prismProjectContract).checkTraitType(collections[_collectionId].projectId, _traitType), "TraitType must be in project" );
+    uint256 _projectId = IPrismProject(prismProjectContract).viewProjectId(_collectionId);
+    require(IPrismProject(prismProjectContract).checkTraitType(_projectId, _traitType), "TraitType must be in project" );
       
       tokens[_id].name = _name;
-      tokens[_id].projectId = collections[_collectionId].projectId;
+      tokens[_id].projectId = _projectId;
       tokens[_id].collectionId = _collectionId;
       tokens[_id].priceInWei = _price;
       tokens[_id].maxSupply = _maxSupply; 
@@ -1038,21 +810,21 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
 
   // Token View functions
 
-  function tokenURI(uint256 _tokenId)
+  function tokenURI(uint256 _id)
   public
   view
   returns (string memory)
   { 
   return string(abi.encodePacked(
-    uri(_tokenId), Strings.toString(_tokenId)));
+    uri(_id), _id));
   }
 
-  function tokensOfCollection(uint256 _collectionId)
+  function tokensOfCollection(uint256 _id)
   public
   view
   returns (Token[] memory)
   { 
-  return collectionIdToToken[_collectionId];
+  return collectionIdToToken[_id];
   }
 
   function tokensOfAddress(address _address)
@@ -1076,94 +848,6 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
     */
   function totalSupply(uint256 id) public view virtual returns (uint256) {
       return _totalSupply[id];
-  }
-
-  /**
-  @dev collection functions
- */
-
-  function createCollection(
-    string memory _name,
-    uint256 _maxInvocations,
-    uint256 _projectId,
-    address _manager,
-    AssetType _assetType,
-    uint256 _royaltiesInBasePoints // needs to be in 1000: 5% = 500
-
-  ) 
-  public 
-  onlyChef(_projectId)
-  {
-  
-    Collection memory collection;
-    collection.name = _name;
-    collection.maxInvocations = _maxInvocations;
-    collection.manager = _manager;
-    collection.assetType = _assetType;
-    collection.royalties = _royaltiesInBasePoints;
-    collection.paused = true;
-    collection.locked = false;
-    collections[nextCollectionId] = collection;
-    projectIdToCollection[_projectId].push(collection); 
-    addressToCollections[_manager].push(collection);
-    
-    emit CollectionCreated(_name, nextCollectionId, _projectId, _royaltiesInBasePoints, _manager, _maxInvocations, _assetType, true);
-    nextCollectionId++;
-  }
-
-  function editCollection(
-    uint256 _id,
-    string memory _name,
-    uint256 _maxInvocations,
-    address _manager,
-    uint256 _royaltiesInBasePoints,
-    AssetType _assetType,
-    bool _paused
-  
-    )
-    public
-    onlyChef(collections[_id].projectId)
-    {
-    collections[_id].name = _name;
-    collections[_id].maxInvocations = _maxInvocations;
-    collections[_id].manager = _manager;
-    collections[_id].royalties = _royaltiesInBasePoints;
-    collections[_id].assetType = _assetType;
-    collections[_id].paused = _paused;
-
-  }
-
-  function lockCollection(uint256 _id) 
-  public 
-  {
-    address _chef = IPrismProject(prismProjectContract).viewProjectChef(collections[_id].projectId);
-    require(collections[_id].manager == _msgSender() || _msgSender() == _chef || _msgSender() == owner() , "Must be chef or manager");
-    collections[_id].locked = true;
-  }
-
-  function collectionURI(uint256 _id) 
-  public 
-  view
-  returns (string memory)
-  {
-  return string(abi.encodePacked(
-    collectionBaseURI, Strings.toString(_id)));
-  }
-
-  function collectionsOfProject(uint256 _projectId)
-  public
-  view
-  returns (Collection[] memory)
-  { 
-  return projectIdToCollection[_projectId];
-  }
-
-  function collectionsOfManager(address _manager)
-  public
-  view
-  returns (Collection[] memory)
-  { 
-  return addressToCollections[_manager];
   }
 
   /**
@@ -1199,7 +883,7 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
         }
     }    
     for (uint256 i=0;i < ids.length; i++){
-      for (uint256 k=0;k < amounts[i]; k++){
+      if (balanceOf(to, ids[i]) == 0){
         if (from == address(0)){
           addressToToken[to].push(tokens[ids[i]]);
         } else {
@@ -1209,7 +893,6 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
       }
     }
   }
-
 
   /**
   @dev adjusting TokenHoldings of users
@@ -1224,41 +907,32 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
   ) internal {
 
     for (uint256 i=0;i < addressToToken[_from].length; i++){
-      if(_id == addressToToken[_from][i].id){
+      if(_id == addressToToken[_from][i].id && balanceOf(_from, _id) == 1){
         addressToToken[_to].push(addressToToken[_from][i]);
         delete addressToToken[_from][i];
+        break;
+      } else if (_id == addressToToken[_from][i].id && balanceOf(_from, _id) > 1){
+        addressToToken[_to].push(addressToToken[_from][i]);
         break;
       }
     }
   }
 
-
   /**
     * @inheritdoc IERC2981
     */
   function royaltyInfo(uint256 _tokenId, uint256 _salePrice) public view override returns (address, uint256) {
-    address receiver = collections[tokens[_tokenId].collectionId].manager;
-    uint256 royalty = collections[tokens[_tokenId].collectionId].royalties;
+    address receiver = IPrismProject(prismProjectContract).viewManager(tokens[_tokenId].collectionId);
+    uint256 royalty = IPrismProject(prismProjectContract).viewRoyalties(_tokenId);
     if( royalty == 0) {
       royalty = defaultRoyalty;
     }
-    
     if( receiver != address(0)) {
         royalty = 0;
     }
 
-    uint256 royaltyAmount = (_salePrice * royalty) / _feeDenominator();
+    uint256 royaltyAmount = (_salePrice * royalty) / feeDenominator;
     return(receiver, royaltyAmount);
-  }
-
-
-  /**
-    * @dev The denominator with which to interpret the fee set in {_setTokenRoyalty} and {_setDefaultRoyalty} as a
-    * fraction of the sale price. Defaults to 10000 so fees are expressed in basis points, but may be customized by an
-    * override.
-    */
-  function _feeDenominator() internal pure returns (uint96) {
-      return 10000;
   }
 
 
@@ -1270,17 +944,6 @@ contract PrismToken1155 is ERC1155, Ownable, IERC2981 {
     /**
   @dev events
  */
-
-  event CollectionCreated(
-    string _name,
-    uint256 indexed _id,
-    uint256 indexed _projectId,
-    uint256 royalties,
-     address manager,
-    uint256 _maxInvocation,
-    AssetType assetType,
-    bool paused
-  );
 
   event TokenCreated(
     string _name,
