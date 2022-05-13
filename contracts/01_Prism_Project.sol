@@ -94,12 +94,12 @@ contract PrismProjects is Ownable {
   
   //Project mappings
   mapping (uint256 => Project) public projects;
-  mapping (address => Project[]) private addressToProjects;
-  mapping (uint256 => Collection[]) private projectIdToCollection;  
+  mapping (address => uint256[]) private addressToProjectIds;
+  mapping (uint256 => uint256[]) private projectIdToCollectionIds;  
   
   //Collection mappings
   mapping(uint256 => Collection) public collections;
-  mapping(address => Collection[]) private addressToCollections;
+  mapping(address => uint256[]) private addressToCollectionIds;
   
 
 
@@ -154,11 +154,12 @@ contract PrismProjects is Ownable {
   @dev helpers 
  */
 
-  function addBaseURI(string memory _projectURI)
+  function addBaseURI(string memory _projectURI, string memory _collectionURI)
     public
     onlyOwner
   {
     projectBaseURI = _projectURI;
+    collectionBaseURI = _collectionURI;
   }
 
   /**
@@ -178,7 +179,7 @@ contract PrismProjects is Ownable {
       project.traitTypes = _traitTypes;
       projects[nextProjectId] = project;
       emit ProjectCreated(nextProjectId, _name, _chef, _traitTypes);
-      addressToProjects[_msgSender()].push(project);
+      addressToProjectIds[_msgSender()].push(nextProjectId);
       nextProjectId++;  
     }
 
@@ -238,9 +239,9 @@ contract PrismProjects is Ownable {
   function chefToProjects(address _chef)
   public
   view
-  returns (Project[] memory)
+  returns (uint256[] memory)
   { 
-  return addressToProjects[_chef];
+  return addressToProjectIds[_chef];
   }
 
   function viewProjectChef(uint256 _id)
@@ -287,8 +288,8 @@ contract PrismProjects is Ownable {
     collection.paused = true;
     collection.id = nextCollectionId;
     collections[nextCollectionId] = collection;
-    projectIdToCollection[_projectId].push(collection); 
-    addressToCollections[_manager].push(collection);
+    projectIdToCollectionIds[_projectId].push(nextCollectionId); 
+    addressToCollectionIds[_manager].push(nextCollectionId);
     
     emit CollectionCreated(_name, nextCollectionId, _projectId, _royalties, _manager, _maxInvocations, _assetType, true);
     nextCollectionId++;
@@ -352,39 +353,6 @@ contract PrismProjects is Ownable {
     return collections[_id].paused;
   }
 
-
-
-
-  // function viewCollection(
-  //   uint256 _id
-  //   )
-  //   external
-  //   view
-  //   returns(
-  //     string memory _name,
-  //     uint256 _projectId,
-  //     uint256 _collectionId,
-  //     uint256 _invocations,
-  //     uint256 _maxInvocations,
-  //     address _manager,
-  //     AssetType _assetType,
-  //     uint256 _royalties,
-  //     bool _paused
-  //   )
-  //   {
-  //   _name = collections[_id].name;
-  //   _maxInvocations = collections[_id].maxInvocations;
-  //   _invocations = collections[_id].invocations;
-  //   _manager = collections[_id].manager;
-  //   _assetType = collections[_id].assetType;
-  //   _projectId = collections[_id].projectId;
-  //   _royalties = collections[_id].royalties;
-  //   _paused = collections[_id].paused;
-  //   _collectionId = collections[_id].id;
-  // }
-
-
-
   function collectionURI(uint256 _id) 
   public 
   view
@@ -397,17 +365,17 @@ contract PrismProjects is Ownable {
   function collectionsOfProject(uint256 _projectId)
   public
   view
-  returns (Collection[] memory)
+  returns (uint256[] memory)
   { 
-  return projectIdToCollection[_projectId];
+  return projectIdToCollectionIds[_projectId];
   }
 
   function collectionsOfManager(address _manager)
   public
   view
-  returns (Collection[] memory)
+  returns (uint256[] memory)
   { 
-  return addressToCollections[_manager];
+  return addressToCollectionIds[_manager];
   }
 
   function setPrismTokenContract(address _prismTokenContract) public onlyOwner(){
