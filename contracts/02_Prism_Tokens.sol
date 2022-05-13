@@ -727,6 +727,19 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   } 
 
 
+  function createBatchMasters(
+    string memory _name,
+    uint256 _quantity, 
+    uint256 _collectionId,
+    uint256 _price) 
+    public
+  {
+       for (uint256 i= 0; i < _quantity; i++) {
+        createToken(_name, _price, _collectionId, 1, _name, PrismToken.AssetType.MASTER);
+      }
+  }
+
+
   function createBatchTokens(
     string[] memory _name, 
     uint256[] memory _price, 
@@ -752,7 +765,9 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     onlyManager(_collectionId)
   {
     uint256 _projectId = IPrismProject(prismProjectContract).viewProjectId(_collectionId);
-    require(IPrismProject(prismProjectContract).checkTraitType(_projectId, _traitType), "TraitType must be in project" );
+    if (_assetType != PrismToken.AssetType.MASTER) {
+      require(IPrismProject(prismProjectContract).checkTraitType(_projectId, _traitType), "TraitType must be in project" );
+    }
     Token memory token;
     token.id = nextTokenId;
     token.name = _name;
