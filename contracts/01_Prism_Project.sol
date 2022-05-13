@@ -276,7 +276,6 @@ contract PrismProjects is Ownable {
   ) 
   public 
   onlyChef(_projectId)
-  returns (uint256 collectionId)
   {
     Collection memory collection;
     collection.name = _name;
@@ -293,7 +292,6 @@ contract PrismProjects is Ownable {
     
     emit CollectionCreated(_name, nextCollectionId, _projectId, _royalties, _manager, _maxInvocations, _assetType, true);
     nextCollectionId++;
-    return collection.id;
   }
 
   function editCollection(
