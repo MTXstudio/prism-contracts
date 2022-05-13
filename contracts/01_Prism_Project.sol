@@ -154,11 +154,12 @@ contract PrismProjects is Ownable {
   @dev helpers 
  */
 
-  function addBaseURI(string memory _projectURI)
+  function addBaseURI(string memory _projectURI, string memory _collectionURI)
     public
     onlyOwner
   {
     projectBaseURI = _projectURI;
+    collectionBaseURI = _collectionURI;
   }
 
   /**
@@ -349,37 +350,6 @@ contract PrismProjects is Ownable {
   function viewPausedStatus (uint256 _id) external view returns(bool paused){
     return collections[_id].paused;
   }
-
-
-  // function viewCollection(
-  //   uint256 _id
-  //   )
-  //   external
-  //   view
-  //   returns(
-  //     string memory _name,
-  //     uint256 _projectId,
-  //     uint256 _collectionId,
-  //     uint256 _invocations,
-  //     uint256 _maxInvocations,
-  //     address _manager,
-  //     AssetType _assetType,
-  //     uint256 _royalties,
-  //     bool _paused
-  //   )
-  //   {
-  //   _name = collections[_id].name;
-  //   _maxInvocations = collections[_id].maxInvocations;
-  //   _invocations = collections[_id].invocations;
-  //   _manager = collections[_id].manager;
-  //   _assetType = collections[_id].assetType;
-  //   _projectId = collections[_id].projectId;
-  //   _royalties = collections[_id].royalties;
-  //   _paused = collections[_id].paused;
-  //   _collectionId = collections[_id].id;
-  // }
-
-
 
   function collectionURI(uint256 _id) 
   public 

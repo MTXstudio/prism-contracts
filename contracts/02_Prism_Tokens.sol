@@ -127,9 +127,6 @@ interface IPrismProject{
   
 }
 
-
-
-
 /**
  * @dev Implementation of the basic standard multi-token.
  * See https://eips.ethereum.org/EIPS/eip-1155
@@ -525,7 +522,6 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
  */
   address public prismProjectContract;
   uint256 public nextTokenId = 1;
-  uint256 public nextCollectionId = 1;
   uint256 public defaultRoyalty = 500;
   uint256 private feeDenominator = 1000;
 
@@ -690,11 +686,10 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     }
   }
 
-  function addBaseURIs(string memory _collectionURI, string memory _tokenURI)
+  function addBaseURIs(string memory _tokenURI)
     public
     onlyOwner
   {
-    collectionBaseURI = _collectionURI;
     _setURI(_tokenURI);
   }
 
