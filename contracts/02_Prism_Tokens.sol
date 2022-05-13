@@ -537,12 +537,12 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
  */
   
   //Collection mappings
-  mapping (uint256 => Token[]) private collectionIdToToken;
+  mapping (uint256 => uint256[]) private collectionIdToTokenId;
   
   
   //Token mappings
   mapping (uint256 => Token) public tokens;
-  mapping (address => Token[]) private addressToToken;
+  mapping (address => uint256[]) private addressToTokenIds;
   mapping (uint256 => uint256[]) private masterToTraits;
   mapping (address => mapping (uint256 => uint256)) public addressToTokenIdToUsed;
   mapping(uint256 => uint256) private _totalSupply;
@@ -767,7 +767,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     token.locked = false;
     tokens[nextTokenId] = token;
 
-    collectionIdToToken[_collectionId].push(token);
+    collectionIdToTokenId[_collectionId].push(nextTokenId);
     emit TokenCreated(token.name, nextTokenId, token.projectId, token.collectionId, token.priceInWei, token.maxSupply, token.traitType, token.assetType, true);
     nextTokenId++; 
   }
@@ -822,17 +822,17 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   function tokensOfCollection(uint256 _id)
   public
   view
-  returns (Token[] memory)
+  returns (uint256[] memory)
   { 
-  return collectionIdToToken[_id];
+  return collectionIdToTokenId[_id];
   }
 
   function tokensOfAddress(address _address)
   public
   view
-  returns (Token[] memory)
+  returns (uint256[] memory)
   { 
-  return addressToToken[_address];
+  return addressToTokenIds[_address];
   }
 
   function traitsOfMaster(uint256 _id)
@@ -885,7 +885,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     for (uint256 i=0;i < ids.length; i++){
       if (balanceOf(to, ids[i]) == 0){
         if (from == address(0)){
-          addressToToken[to].push(tokens[ids[i]]);
+          addressToTokenIds[to].push(ids[i]);
         } else {
           require(balanceOf(from, ids[i]) - addressToTokenIdToUsed[from][i] >= amounts[i], "Must un-equip Token");
           _adjustTokenHolding(from,to,ids[i]);
@@ -906,13 +906,13 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     uint256 _id
   ) internal {
 
-    for (uint256 i=0;i < addressToToken[_from].length; i++){
-      if(_id == addressToToken[_from][i].id && balanceOf(_from, _id) == 1){
-        addressToToken[_to].push(addressToToken[_from][i]);
-        delete addressToToken[_from][i];
+    for (uint256 i=0;i < addressToTokenIds[_from].length; i++){
+      if(_id == addressToTokenIds[_from][i] && balanceOf(_from, _id) == 1){
+        addressToTokenIds[_to].push(addressToTokenIds[_from][i]);
+        delete addressToTokenIds[_from][i];
         break;
-      } else if (_id == addressToToken[_from][i].id && balanceOf(_from, _id) > 1){
-        addressToToken[_to].push(addressToToken[_from][i]);
+      } else if (_id == addressToTokenIds[_from][i] && balanceOf(_from, _id) > 1){
+        addressToTokenIds[_to].push(addressToTokenIds[_from][i]);
         break;
       }
     }
