@@ -334,6 +334,7 @@ contract PrismProjects is Ownable {
 
   function pauseCollection(uint256 _id) public onlyChef(collections[_id].projectId) {
     collections[_id].paused = !collections[_id].paused;
+    emit CollectionPause(!collections[_id].paused);
   }
 
   function addInvocation(uint256 _id, uint256 _amount) external {
@@ -434,4 +435,8 @@ contract PrismProjects is Ownable {
     AssetType assetType,
     bool paused
   );
+
+  event CollectionPause(
+    bool paused
+  )
 }
