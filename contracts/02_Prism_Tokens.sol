@@ -793,6 +793,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
 
   function pauseToken(uint256 _id) public onlyManager(tokens[_id].collectionId) {
     tokens[_id].paused = !tokens[_id].paused;
+    emit TokenPause(_id, !tokens[_id].paused);
   }
 
   function editTokens(
@@ -971,6 +972,11 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   event MasterEdit(
     uint256 indexed _mNFT,
     uint256[] indexed _traits
+  );
+
+  event TokenPause(
+    uint256 indexed _id,
+    bool paused
   );
 
 }
