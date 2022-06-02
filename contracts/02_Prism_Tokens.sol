@@ -792,7 +792,9 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   }
 
   function pauseToken(uint256 _id) public onlyManager(tokens[_id].collectionId) {
-    tokens[_id].paused = !tokens[_id].paused;
+    bool isPaused = !tokens[_id].paused;
+    tokens[_id].paused = isPaused;
+    emit TokenEdit(tokens[_id].name, nextTokenId, tokens[_id].projectId, tokens[_id].collectionId, tokens[_id].priceInWei, tokens[_id].maxSupply, tokens[_id].traitType, tokens[_id].assetType, isPaused);
   }
 
   function editTokens(
@@ -816,7 +818,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
       tokens[_id].maxSupply = _maxSupply; 
       tokens[_id].traitType = _traitType;
       tokens[_id].assetType = _tokenType;
-      tokens[_id].paused = _paused;   
+      tokens[_id].paused = _paused;
   }
 
   // Token View functions
@@ -971,6 +973,18 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   event MasterEdit(
     uint256 indexed _mNFT,
     uint256[] indexed _traits
+  );
+
+  event TokenEdit(
+    string _name,
+    uint256 indexed _id,
+    uint256 indexed _projectId,
+    uint256 indexed _collectionId,
+    uint256 _priceinWei,
+    uint256 _maxSupply,
+    string _traitType,
+    AssetType assetType,
+    bool _paused
   );
 
 }

@@ -188,10 +188,16 @@ contract PrismProjects is Ownable {
   onlyChef(_id)
   {
     require(address(0) != projects[_id].chef, "Project must exist");
-    projects[_id].name = _name;
-    projects[_id].chef = _chef;
-    projects[_id].traitTypes = _traitTypes;
-
+    if (bytes(_name).length != 0) {
+      projects[_id].name = _name;
+    }
+    if (_chef != address(0)) {
+      projects[_id].chef = _chef;
+    }
+    if (_traitTypes.length != 0) {
+      projects[_id].traitTypes = _traitTypes;
+    }
+    emit ProjectEdit(_id, _name, _chef, _traitTypes);
   }
 
 
@@ -308,17 +314,28 @@ contract PrismProjects is Ownable {
     public
     onlyChef(collections[_id].projectId)
     {
-    collections[_id].name = _name;
-    collections[_id].projectId = _projectId;
-    collections[_id].maxInvocations = _maxInvocations;
-    collections[_id].manager = _manager;
-    collections[_id].royalties = (_royalties * 100);
+      if (bytes(_name).length != 0) {
+      collections[_id].name = _name;
+    }
+    if (_maxInvocations != 0) {
+      collections[_id].maxInvocations = _maxInvocations;
+    }
+    if (_manager != address(0)) {
+      collections[_id].manager = _manager;
+    }
+    if (_projectId != 0) {
+      collections[_id].projectId = _projectId;
+    }
     collections[_id].assetType = _assetType;
+    collections[_id].royalties = (_royalties * 100);
     collections[_id].paused = _paused;
+    emit CollectionEdit(_name, nextCollectionId, _projectId, _royalties, _manager, _maxInvocations, _assetType, _paused);
   }
 
   function pauseCollection(uint256 _id) public onlyChef(collections[_id].projectId) {
-    collections[_id].paused = !collections[_id].paused;
+    bool isPaused = !collections[_id].paused;
+    collections[_id].paused = isPaused;
+    emit CollectionEdit(collections[_id].name, nextCollectionId, collections[_id].projectId, collections[_id].royalties, collections[_id].manager,collections[_id].maxInvocations, collections[_id].assetType, isPaused);
   }
 
   function addInvocation(uint256 _id, uint256 _amount) external {
@@ -402,6 +419,21 @@ contract PrismProjects is Ownable {
     bool paused
   );
 
+  event ProjectEdit(
+    uint256 indexed _id,
+    string _name,
+    address _chef,
+    string[] traitTypes
+  );
 
-
+  event CollectionEdit(
+    string _name,
+    uint256 indexed _id,
+    uint256 indexed _projectId,
+    uint256 royalties,
+     address manager,
+    uint256 _maxInvocation,
+    AssetType assetType,
+    bool paused
+  );
 }
