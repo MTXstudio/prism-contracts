@@ -15,6 +15,7 @@ let royalties = 5
 let customRoyalties = 10
 let ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 let tokenName = ["Original Head 1","Original Head 1","Original Body 2"]
+let tokenDescription = ["D1","D2","D3"]
 let tokenPrices = [tokenPrice,tokenPrice,tokenPrice]
 let tokenCollection = [1,2,3]
 let tokenMaxSupplies = [100,200,300]
@@ -57,11 +58,11 @@ describe('Prism', () => {
     await nftTokens.deployed()
     await nftProjects.setPrismTokenContract(nftTokens.address)
 
-    await nftProjects.createProject("Cyberfrens",projectChef.address,["armor","head","body"])
-    await nftProjects.createCollection("Cyberfrens: Cyberpass",maxInvocations,1, collectionManager.address,2, royalties)
-    await nftProjects.createCollection("Cyberfrens: Original Traits",maxInvocations,1, collectionManager.address,1, royalties)
-    await nftProjects.createCollection("Cyberfrens: Original Master",maxInvocations,1, collectionManager.address,0, royalties)
-    await nftTokens.createBatchTokens(tokenName,tokenPrices, tokenCollection,tokenMaxSupplies,tokenTraits,tokenAsset)
+    await nftProjects.createProject("Cyberfrens", "Project Description", projectChef.address,["armor","head","body"])
+    await nftProjects.createCollection("Cyberfrens: Cyberpass", "Collection Description",maxInvocations,1, collectionManager.address,2, royalties)
+    await nftProjects.createCollection("Cyberfrens: Original Traits", "Collection Description", maxInvocations,1, collectionManager.address,1, royalties)
+    await nftProjects.createCollection("Cyberfrens: Original Master", "Collection Description", maxInvocations,1, collectionManager.address,0, royalties)
+    await nftTokens.createBatchTokens(tokenName, tokenDescription, tokenPrices, tokenCollection,tokenMaxSupplies,tokenTraits,tokenAsset)
   })
 
   it('check project, collection & token setup', async () => {
@@ -122,7 +123,7 @@ describe('Prism', () => {
   it('unpause collection and token', async () => {
     
     expect(await nftProjects.viewPausedStatus(1)).equal(true)
-    await nftProjects.editCollection(1,1,"Cyberfrens: Cyberpass",maxInvocations,collectionManager.address,royalties,2,false)
+    await nftProjects.editCollection(1,1,"Cyberfrens: Cyberpass", "Description", maxInvocations,collectionManager.address,royalties,2,false)
     expect(await nftProjects.viewPausedStatus(1)).equal(false)
 
     expect(await nftProjects.viewPausedStatus(2)).equal(true)
@@ -131,7 +132,7 @@ describe('Prism', () => {
 
 
     expect(await (await nftTokens.tokens(1)).paused).equal(true)
-    await nftTokens.editTokens(1,"Cyberpass",tokenPrice,1,100,"",1,false)
+    await nftTokens.editToken(1, 1, "Cyberpass", "Description", tokenPrice ,100,"",1,false)
     expect(await (await nftTokens.tokens(1)).paused).equal(false)
 
     expect(await (await nftTokens.tokens(2)).paused).equal(true)
@@ -151,7 +152,7 @@ describe('Prism', () => {
     expect(await (await nftProjects.viewProjectTraitTypes(1))[1]).equal('head')
     expect(await (await nftProjects.viewProjectTraitTypes(1))[2]).equal('body')
 
-    await nftProjects.editProject(1,"Cyberfrenz",collectionManager.address,["armor","feet","jewelery"])
+    await nftProjects.editProject(1,"Cyberfrenz", "Description", collectionManager.address,["armor","feet","jewelery"])
 
     expect(await (await nftProjects.projects(1)).id).equal(1)
     expect(await (await nftProjects.projects(1)).chef).equal(collectionManager.address)
@@ -175,7 +176,7 @@ describe('Prism', () => {
     expect(await (await nftProjects.collections(1)).projectId).equal(1)
     expect(await (await nftProjects.collections(1)).paused).equal(true)
 
-    await nftProjects.editCollection(1,1,"Cyber",1,projectChef.address,1,1,false)
+    await nftProjects.editCollection(1,1,"Cyber", "Description", 1,projectChef.address,1,1,false)
 
     expect(await (await nftProjects.collections(1)).id).equal(1)
     expect(await (await nftProjects.collections(1)).invocations).equal(0)

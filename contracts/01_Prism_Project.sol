@@ -118,12 +118,14 @@ contract PrismProjects is Ownable {
   struct Project {
     uint256 id;
     string name;
+    string description;
     address chef;
     string[] traitTypes;
   }
 
   struct Collection {
     string name;
+    string description;
     uint256 id;
     uint256 projectId;
     uint256 royalties; // in 1000th e.g. 1000 for 10%
@@ -168,6 +170,7 @@ contract PrismProjects is Ownable {
 
   function createProject(
       string memory _name,
+      string memory _description,
       address _chef,
       string[] memory _traitTypes
     ) public 
@@ -175,15 +178,16 @@ contract PrismProjects is Ownable {
       Project memory project;
       project.id = nextProjectId;
       project.name = _name;
+      project.description = _description;
       project.chef = _chef;
       project.traitTypes = _traitTypes;
       projects[nextProjectId] = project;
-      emit ProjectCreated(nextProjectId, _name, _chef, _traitTypes);
+      emit ProjectCreated(nextProjectId, _description, _name, _chef, _traitTypes);
       addressToProjectIds[_msgSender()].push(nextProjectId);
       nextProjectId++;  
     }
 
-  function editProject( uint256 _id, string memory _name, address _chef, string[] memory _traitTypes) 
+  function editProject(uint256 _id, string memory _name, string memory _description, address _chef, string[] memory _traitTypes) 
   public
   onlyChef(_id)
   {
@@ -191,13 +195,16 @@ contract PrismProjects is Ownable {
     if (bytes(_name).length != 0) {
       projects[_id].name = _name;
     }
+    if (bytes(_description).length != 0) {
+      projects[_id].description = _description;
+    }
     if (_chef != address(0)) {
       projects[_id].chef = _chef;
     }
     if (_traitTypes.length != 0) {
       projects[_id].traitTypes = _traitTypes;
     }
-    emit ProjectEdit(_id, _name, _chef, _traitTypes);
+    emit ProjectEdit(_id, _name, _description, _chef, _traitTypes);
   }
 
 
@@ -273,6 +280,7 @@ contract PrismProjects is Ownable {
 
   function createCollection(
     string memory _name,
+    string memory _description,
     uint256 _maxInvocations,
     uint256 _projectId,
     address _manager,
@@ -285,6 +293,7 @@ contract PrismProjects is Ownable {
   {
     Collection memory collection;
     collection.name = _name;
+    collection.description = _description;
     collection.maxInvocations = _maxInvocations;
     collection.manager = _manager;
     collection.assetType = _assetType;
@@ -296,7 +305,7 @@ contract PrismProjects is Ownable {
     projectIdToCollectionIds[_projectId].push(nextCollectionId); 
     addressToCollectionIds[_manager].push(nextCollectionId);
     
-    emit CollectionCreated(_name, nextCollectionId, _projectId, _royalties, _manager, _maxInvocations, _assetType, true);
+    emit CollectionCreated(nextCollectionId, _projectId, _name, _description, _royalties, _manager, _maxInvocations, _assetType, true);
     nextCollectionId++;
   }
 
@@ -304,6 +313,7 @@ contract PrismProjects is Ownable {
     uint256 _id,
     uint256 _projectId,
     string memory _name,
+    string memory _description,
     uint256 _maxInvocations,
     address _manager,
     uint256 _royalties,
@@ -317,6 +327,9 @@ contract PrismProjects is Ownable {
       if (bytes(_name).length != 0) {
       collections[_id].name = _name;
     }
+     if (bytes(_description).length != 0) {
+      collections[_id].description = _description;
+    }
     if (_maxInvocations != 0) {
       collections[_id].maxInvocations = _maxInvocations;
     }
@@ -329,13 +342,13 @@ contract PrismProjects is Ownable {
     collections[_id].assetType = _assetType;
     collections[_id].royalties = (_royalties * 100);
     collections[_id].paused = _paused;
-    emit CollectionEdit(_name, nextCollectionId, _projectId, _royalties, _manager, _maxInvocations, _assetType, _paused);
+    emit CollectionEdit(_id, _projectId, _name, _description, _royalties, _manager, _maxInvocations, _assetType, _paused);
   }
 
   function pauseCollection(uint256 _id) public onlyChef(collections[_id].projectId) {
     bool isPaused = !collections[_id].paused;
     collections[_id].paused = isPaused;
-    emit CollectionEdit(collections[_id].name, nextCollectionId, collections[_id].projectId, collections[_id].royalties, collections[_id].manager,collections[_id].maxInvocations, collections[_id].assetType, isPaused);
+    emit CollectionEdit(_id, collections[_id].projectId, collections[_id].name, collections[_id].description, collections[_id].royalties, collections[_id].manager,collections[_id].maxInvocations, collections[_id].assetType, isPaused);
   }
 
   function addInvocation(uint256 _id, uint256 _amount) external {
@@ -404,14 +417,16 @@ contract PrismProjects is Ownable {
   event ProjectCreated(
     uint256 indexed _id,
     string _name,
+    string _description,
     address _chef,
     string[] traitTypes
   );
 
   event CollectionCreated(
-    string _name,
     uint256 indexed _id,
     uint256 indexed _projectId,
+    string _name,
+    string _description,
     uint256 royalties,
      address manager,
     uint256 _maxInvocation,
@@ -422,14 +437,16 @@ contract PrismProjects is Ownable {
   event ProjectEdit(
     uint256 indexed _id,
     string _name,
+    string _description,
     address _chef,
     string[] traitTypes
   );
 
   event CollectionEdit(
-    string _name,
     uint256 indexed _id,
     uint256 indexed _projectId,
+    string _name,
+    string _description,
     uint256 royalties,
      address manager,
     uint256 _maxInvocation,
