@@ -527,6 +527,9 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
 
   string public collectionBaseURI;
   enum AssetType {MASTER, TRAIT, OTHER}
+
+  string[] private masterAttributesName = ["type"];
+  string[] private masterAttributesValue = ["master"];
   
   /**
   @dev mappings
@@ -542,6 +545,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   mapping (uint256 => uint256[]) private masterToTraits;
   mapping (address => mapping (uint256 => uint256)) public addressToTokenIdToUsed;
   mapping(uint256 => uint256) private _totalSupply;
+  mapping(uint256 => Attribute[]) public idToTokenAttributes;
 
   /**
   @dev constructor
@@ -564,15 +568,19 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     address creator;
     uint256 maxSupply;
     uint256 priceInWei;
+    string imageCID;
     uint256 projectId;
     uint256 collectionId;
     string traitType;
     AssetType assetType;
     bool paused;
     bool locked;
-    string imageCID;
   }
 
+  struct Attribute {
+    string name;
+    string value;
+  }
 
   /**
   @dev modifiers
@@ -723,25 +731,26 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
       return masterToTraits[_mNftId];   
   } 
 
-
   function createBatchMasters(
     string memory _name,
     uint256 _quantity, 
     uint256 _collectionId,
-    uint256 _price) 
+    uint256 _price
+    ) 
     public
   {
        for (uint256 i= 0; i < _quantity; i++) {
-        createToken(_name, "MASTER NFT", _price, "", _collectionId, 1, _name, PrismToken.AssetType.MASTER);
+        createToken(_name, "MASTER NFT", _price, "", masterAttributesName, masterAttributesValue, _collectionId, 1, _name, PrismToken.AssetType.MASTER);
       }
   }
-
 
   function createBatchTokens(
     string[] memory _name, 
     string[] memory _description,
     uint256[] memory _price, 
     string[] memory _imageCID,
+    string[][] memory _attributesName,
+    string[][] memory _attributesValue,
     uint256[] memory _collectionId,
     uint256[] memory _maxSupply, 
     string[] memory _traitType,
@@ -749,7 +758,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     public 
   {
     for (uint256 i= 0; i < _name.length; i++) {
-      createToken(_name[i], _description[i], _price[i], _imageCID[i], _collectionId[i], _maxSupply[i], _traitType[i], _assetType[i]);
+      createToken(_name[i], _description[i], _price[i], _imageCID[i], _attributesName[i], _attributesValue[i], _collectionId[i], _maxSupply[i], _traitType[i], _assetType[i]);
     }
   }
 
@@ -758,6 +767,8 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     string memory _description, 
     uint256 _price, 
     string memory _imageCID,
+    string[] memory _attributesName,
+    string[] memory _attributesValue,
     uint256 _collectionId,
     uint256 _maxSupply, 
     string memory _traitType,
@@ -785,8 +796,13 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     token.locked = false;
     tokens[nextTokenId] = token;
 
+    for (uint256 i = 0; i <= _attributesName.length - 1; i++) {
+      Attribute memory attribute = Attribute(_attributesName[i], _attributesValue[i]);
+      idToTokenAttributes[nextTokenId].push(attribute);
+    }
+
     collectionIdToTokenId[_collectionId].push(nextTokenId);
-    emit TokenCreated(nextTokenId, token.projectId, token.collectionId, token.name, token.description, token.priceInWei, token.imageCID, token.maxSupply, token.traitType, token.assetType, true);
+    emit TokenCreated(nextTokenId, token.projectId, token.collectionId, token.name, token.description, token.priceInWei, token.imageCID, idToTokenAttributes[nextTokenId], token.maxSupply, token.traitType, token.assetType, true);
     nextTokenId++; 
   }
 
@@ -801,37 +817,24 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   function pauseToken(uint256 _id) public onlyManager(tokens[_id].collectionId) {
     bool isPaused = !tokens[_id].paused;
     tokens[_id].paused = isPaused;
-    emit TokenEdit(_id, tokens[_id].projectId, tokens[_id].collectionId, tokens[_id].name, tokens[_id].description, tokens[_id].priceInWei, tokens[_id].imageCID, tokens[_id].maxSupply, tokens[_id].traitType, tokens[_id].assetType, isPaused);
+    emit TokenEdit(_id, tokens[_id].name, tokens[_id].description, tokens[_id].priceInWei, tokens[_id].maxSupply,  isPaused);
   }
 
   function editToken(
     uint256 _id,
-    uint256 _collectionId,
     string memory _name,
     string memory _description,
     uint256 _price, 
-    uint256 _maxSupply, 
-    string memory _traitType,
-    AssetType _tokenType,
-    bool _paused) 
-    public 
+    uint256 _maxSupply) 
+    public onlyManager(tokens[_id].collectionId)
   {
-    uint256 _projectId = IPrismProject(prismProjectContract).viewProjectId(_collectionId);
-    require(IPrismProject(prismProjectContract).checkTraitType(_projectId, _traitType), "TraitType must be in project" );
       
       tokens[_id].name = _name;
       tokens[_id].description = _description;
-      tokens[_id].projectId = _projectId;
-      tokens[_id].collectionId = _collectionId;
       tokens[_id].priceInWei = _price;
       tokens[_id].maxSupply = _maxSupply; 
-      tokens[_id].traitType = _traitType;
-      tokens[_id].assetType = _tokenType;
-      tokens[_id].paused = _paused;
 
-      string memory imageCID = tokens[_id].imageCID;
-
-      emit TokenEdit(_id, _projectId, _collectionId, _name, _description, _price, imageCID, _maxSupply, _traitType, _tokenType, _paused);
+      emit TokenEdit(_id, tokens[_id].name, tokens[_id].description, tokens[_id].priceInWei, tokens[_id].maxSupply, tokens[_id].paused);
   }
 
   // Token View functions
@@ -979,6 +982,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     string _description,
     uint256 _priceinWei,
     string _imageCID,
+    Attribute[] _attributes,
     uint256 _maxSupply,
     string _traitType,
     AssetType assetType,
@@ -992,15 +996,10 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
 
   event TokenEdit(
     uint256 indexed _id,
-    uint256 indexed _projectId,
-    uint256 indexed _collectionId,
     string _name,
     string _description,
     uint256 _priceinWei,
-    string _imageCID,
     uint256 _maxSupply,
-    string _traitType,
-    AssetType assetType,
     bool _paused
   );
 

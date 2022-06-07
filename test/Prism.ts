@@ -22,6 +22,8 @@ let tokenCollection = [1,2,3]
 let tokenMaxSupplies = [100,200,300]
 let tokenTraits = ["head","head","body"]
 let tokenAsset = [0,0,0]
+let tokenAttributesName = [["name"], ["name"], ["name"]];
+let tokenAttributesValue = [["value"], ["value"], ["value"]];
 
 describe('Prism', () => {
   let nftProjects: PrismProjects
@@ -63,7 +65,7 @@ describe('Prism', () => {
     await nftProjects.createCollection("Cyberfrens: Cyberpass", "Collection Description",maxInvocations,1, collectionManager.address,2, royalties)
     await nftProjects.createCollection("Cyberfrens: Original Traits", "Collection Description", maxInvocations,1, collectionManager.address,1, royalties)
     await nftProjects.createCollection("Cyberfrens: Original Master", "Collection Description", maxInvocations,1, collectionManager.address,0, royalties)
-    await nftTokens.createBatchTokens(tokenName, tokenDescription, tokenPrices, tokenCID, tokenCollection,tokenMaxSupplies,tokenTraits,tokenAsset)
+    await nftTokens.createBatchTokens(tokenName, tokenDescription, tokenPrices, tokenCID, tokenAttributesName, tokenAttributesValue, tokenCollection,tokenMaxSupplies,tokenTraits,tokenAsset)
   })
 
   it('check project, collection & token setup', async () => {
@@ -133,7 +135,9 @@ describe('Prism', () => {
 
 
     expect(await (await nftTokens.tokens(1)).paused).equal(true)
-    await nftTokens.editToken(1, 1, "Cyberpass", "Description", tokenPrice ,100,"",1,false)
+    await nftTokens.editToken(1, "Cyberpass", "Description", 100, 1)
+    expect(await (await nftTokens.tokens(1)).paused).equal(true)
+    await nftTokens.pauseToken(1)
     expect(await (await nftTokens.tokens(1)).paused).equal(false)
 
     expect(await (await nftTokens.tokens(2)).paused).equal(true)
