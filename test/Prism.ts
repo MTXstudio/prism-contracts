@@ -15,6 +15,7 @@ let royalties = 5
 let customRoyalties = 10
 let ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 let tokenName = ["Original Head 1","Original Head 1","Original Body 2"]
+let tokenCID = ["","",""]
 let tokenDescription = ["D1","D2","D3"]
 let tokenPrices = [tokenPrice,tokenPrice,tokenPrice]
 let tokenCollection = [1,2,3]
@@ -62,7 +63,7 @@ describe('Prism', () => {
     await nftProjects.createCollection("Cyberfrens: Cyberpass", "Collection Description",maxInvocations,1, collectionManager.address,2, royalties)
     await nftProjects.createCollection("Cyberfrens: Original Traits", "Collection Description", maxInvocations,1, collectionManager.address,1, royalties)
     await nftProjects.createCollection("Cyberfrens: Original Master", "Collection Description", maxInvocations,1, collectionManager.address,0, royalties)
-    await nftTokens.createBatchTokens(tokenName, tokenDescription, tokenPrices, tokenCollection,tokenMaxSupplies,tokenTraits,tokenAsset)
+    await nftTokens.createBatchTokens(tokenName, tokenDescription, tokenPrices, tokenCID, tokenCollection,tokenMaxSupplies,tokenTraits,tokenAsset)
   })
 
   it('check project, collection & token setup', async () => {

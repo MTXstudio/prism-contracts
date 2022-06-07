@@ -570,6 +570,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     AssetType assetType;
     bool paused;
     bool locked;
+    string imageCID;
   }
 
 
@@ -731,7 +732,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     public
   {
        for (uint256 i= 0; i < _quantity; i++) {
-        createToken(_name, "MASTER NFT", _price, _collectionId, 1, _name, PrismToken.AssetType.MASTER);
+        createToken(_name, "MASTER NFT", _price, "", _collectionId, 1, _name, PrismToken.AssetType.MASTER);
       }
   }
 
@@ -740,6 +741,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     string[] memory _name, 
     string[] memory _description,
     uint256[] memory _price, 
+    string[] memory _imageCID,
     uint256[] memory _collectionId,
     uint256[] memory _maxSupply, 
     string[] memory _traitType,
@@ -747,7 +749,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     public 
   {
     for (uint256 i= 0; i < _name.length; i++) {
-      createToken(_name[i], _description[i], _price[i], _collectionId[i], _maxSupply[i], _traitType[i], _assetType[i]);
+      createToken(_name[i], _description[i], _price[i], _imageCID[i], _collectionId[i], _maxSupply[i], _traitType[i], _assetType[i]);
     }
   }
 
@@ -755,6 +757,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     string memory _name,
     string memory _description, 
     uint256 _price, 
+    string memory _imageCID,
     uint256 _collectionId,
     uint256 _maxSupply, 
     string memory _traitType,
@@ -774,6 +777,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     token.projectId = _projectId;
     token.collectionId = _collectionId;
     token.priceInWei = _price;
+    token.imageCID = _imageCID;
     token.maxSupply = _maxSupply; 
     token.traitType = _traitType;
     token.assetType = _assetType;
@@ -782,7 +786,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     tokens[nextTokenId] = token;
 
     collectionIdToTokenId[_collectionId].push(nextTokenId);
-    emit TokenCreated(nextTokenId, token.projectId, token.collectionId, token.name, token.description, token.priceInWei, token.maxSupply, token.traitType, token.assetType, true);
+    emit TokenCreated(nextTokenId, token.projectId, token.collectionId, token.name, token.description, token.priceInWei, token.imageCID, token.maxSupply, token.traitType, token.assetType, true);
     nextTokenId++; 
   }
 
@@ -797,7 +801,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   function pauseToken(uint256 _id) public onlyManager(tokens[_id].collectionId) {
     bool isPaused = !tokens[_id].paused;
     tokens[_id].paused = isPaused;
-    emit TokenEdit(_id, tokens[_id].projectId, tokens[_id].collectionId, tokens[_id].name, tokens[_id].description, tokens[_id].priceInWei, tokens[_id].maxSupply, tokens[_id].traitType, tokens[_id].assetType, isPaused);
+    emit TokenEdit(_id, tokens[_id].projectId, tokens[_id].collectionId, tokens[_id].name, tokens[_id].description, tokens[_id].priceInWei, tokens[_id].imageCID, tokens[_id].maxSupply, tokens[_id].traitType, tokens[_id].assetType, isPaused);
   }
 
   function editToken(
@@ -825,7 +829,9 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
       tokens[_id].assetType = _tokenType;
       tokens[_id].paused = _paused;
 
-      emit TokenEdit(_id, _projectId, _collectionId, _name, _description, _price, _maxSupply, _traitType, _tokenType, _paused);
+      string memory imageCID = tokens[_id].imageCID;
+
+      emit TokenEdit(_id, _projectId, _collectionId, _name, _description, _price, imageCID, _maxSupply, _traitType, _tokenType, _paused);
   }
 
   // Token View functions
@@ -972,6 +978,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     string _name,
     string _description,
     uint256 _priceinWei,
+    string _imageCID,
     uint256 _maxSupply,
     string _traitType,
     AssetType assetType,
@@ -990,6 +997,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     string _name,
     string _description,
     uint256 _priceinWei,
+    string _imageCID,
     uint256 _maxSupply,
     string _traitType,
     AssetType assetType,
