@@ -765,7 +765,6 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     uint256 _projectId = IPrismProject(prismProjectContract).viewProjectId(_collectionId);
     if (_assetType != PrismToken.AssetType.MASTER) {
       require(IPrismProject(prismProjectContract).checkTraitType(_projectId, _traitType), "TraitType must be in project" );
-      _name = "";
     }
     Token memory token;
     token.id = nextTokenId;
