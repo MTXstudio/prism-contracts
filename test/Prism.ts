@@ -66,6 +66,7 @@ describe('Prism', () => {
     await nftProjects.createCollection("Cyberfrens: Original Traits", "Collection Description", maxInvocations,1, collectionManager.address,1, royalties)
     await nftProjects.createCollection("Cyberfrens: Original Master", "Collection Description", maxInvocations,1, collectionManager.address,0, royalties)
     await nftTokens.createBatchTokens(tokenName, tokenDescription, tokenPrices, tokenCID, tokenAttributesName, tokenAttributesValue, tokenCollection,tokenMaxSupplies,tokenTraits,tokenAsset)
+    await nftTokens.createToken("tokenName", "tokenDescription", 1, 'tokenCID', ["name", "name", "name", "name", "name", "name"], ["value", "value", "value", "value", "value", "value"], 1,1,"head",0)
   })
 
   it('check project, collection & token setup', async () => {
