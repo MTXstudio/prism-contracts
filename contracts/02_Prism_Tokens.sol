@@ -98,7 +98,7 @@ interface IERC2981 is IERC165 {
 
 interface IPrismProject{
 
-  enum AssetType {MASTER, TRAIT, OTHER}
+  enum AssetType {CANVAS, LAYER, OTHER}
 
   struct Collection {
     string name;
@@ -114,7 +114,7 @@ interface IPrismProject{
 
   function viewProjectChef(uint256 _id) external view returns (address _chef);
 
-  function checkTraitType(uint256 _id, string memory _traitType) external returns(bool);
+  function checkLayerType(uint256 _id, string memory _layerType) external returns(bool);
 
   function addInvocation(uint256 _collectionId, uint _amount) external;  
 
@@ -526,10 +526,10 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   uint256 private feeDenominator = 1000;
 
   string public collectionBaseURI;
-  enum AssetType {MASTER, TRAIT, OTHER}
+  enum AssetType {CANVAS, LAYER, OTHER}
 
-  string[] private masterAttributesName = ["type"];
-  string[] private masterAttributesValue = ["master"];
+  string[] private canvasAttributesName = ["type"];
+  string[] private canvasAttributesValue = ["canvas"];
   
   /**
   @dev mappings
@@ -542,7 +542,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   //Token mappings
   mapping (uint256 => Token) public tokens;
   mapping (address => uint256[]) private addressToTokenIds;
-  mapping (uint256 => uint256[]) private masterToTraits;
+  mapping (uint256 => uint256[]) private canvasToLayers;
   mapping (address => mapping (uint256 => uint256)) public addressToTokenIdToUsed;
   mapping(uint256 => uint256) private _totalSupply;
   mapping(uint256 => Attribute[]) public idToTokenAttributes;
@@ -571,7 +571,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     string imageCID;
     uint256 projectId;
     uint256 collectionId;
-    string traitType;
+    string layerType;
     AssetType assetType;
     bool paused;
     bool locked;
@@ -707,31 +707,31 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   @dev token functions
  */
 
-  function editMaster(
+  function editCanvas(
     uint256 _mNftId,
-    uint256[] memory _traitIds)
+    uint256[] memory _layerIds)
     public
     onlyTokenOwner(_mNftId)
   returns (uint256[] memory)
   {
-    require(tokens[_mNftId].assetType == AssetType.MASTER ,"_mNFTId needs to be Master");
+    require(tokens[_mNftId].assetType == AssetType.CANVAS ,"_mNFTId needs to be Canvas");
     
-    for (uint256 i=0;i < masterToTraits[_mNftId].length; i++){
-      addressToTokenIdToUsed[_msgSender()][masterToTraits[_mNftId][i]]--;
+    for (uint256 i=0;i < canvasToLayers[_mNftId].length; i++){
+      addressToTokenIdToUsed[_msgSender()][canvasToLayers[_mNftId][i]]--;
     }
 
-    for (uint256 k=0;k < _traitIds.length; k++){
-      require(balanceOf(_msgSender(), _traitIds[k]) > addressToTokenIdToUsed[_msgSender()][_traitIds[k]], "Must own and not use trait");
+    for (uint256 k=0;k < _layerIds.length; k++){
+      require(balanceOf(_msgSender(), _layerIds[k]) > addressToTokenIdToUsed[_msgSender()][_layerIds[k]], "Must own and not use layer");
       
-      addressToTokenIdToUsed[_msgSender()][_traitIds[k]]++;
+      addressToTokenIdToUsed[_msgSender()][_layerIds[k]]++;
 
       }
-      masterToTraits[_mNftId] = _traitIds;
-      MasterEdit(_mNftId, masterToTraits[_mNftId]);
-      return masterToTraits[_mNftId];   
+      canvasToLayers[_mNftId] = _layerIds;
+      CanvasEdit(_mNftId, canvasToLayers[_mNftId]);
+      return canvasToLayers[_mNftId];   
   } 
 
-  function createBatchMasters(
+  function createBatchCanvases(
     string memory _name,
     uint256 _quantity, 
     uint256 _collectionId,
@@ -740,7 +740,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     public
   {
        for (uint256 i= 0; i < _quantity; i++) {
-        createToken(_name, "MASTER NFT", _price, "", masterAttributesName, masterAttributesValue, _collectionId, 1, _name, PrismToken.AssetType.MASTER);
+        createToken(_name, "CANVAS NFT", _price, "", canvasAttributesName, canvasAttributesValue, _collectionId, 1, _name, PrismToken.AssetType.CANVAS);
       }
   }
 
@@ -753,12 +753,12 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     string[][] memory _attributesValue,
     uint256[] memory _collectionId,
     uint256[] memory _maxSupply, 
-    string[] memory _traitType,
+    string[] memory _layerType,
     AssetType[] memory _assetType) 
     public 
   {
     for (uint256 i= 0; i < _name.length; i++) {
-      createToken(_name[i], _description[i], _price[i], _imageCID[i], _attributesName[i], _attributesValue[i], _collectionId[i], _maxSupply[i], _traitType[i], _assetType[i]);
+      createToken(_name[i], _description[i], _price[i], _imageCID[i], _attributesName[i], _attributesValue[i], _collectionId[i], _maxSupply[i], _layerType[i], _assetType[i]);
     }
   }
 
@@ -771,14 +771,14 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     string[] memory _attributesValue,
     uint256 _collectionId,
     uint256 _maxSupply, 
-    string memory _traitType,
+    string memory _layerType,
     AssetType _assetType) 
     public
     onlyManager(_collectionId)
   {
     uint256 _projectId = IPrismProject(prismProjectContract).viewProjectId(_collectionId);
-    if (_assetType != PrismToken.AssetType.MASTER) {
-      require(IPrismProject(prismProjectContract).checkTraitType(_projectId, _traitType), "TraitType must be in project" );
+    if (_assetType != PrismToken.AssetType.CANVAS) {
+      require(IPrismProject(prismProjectContract).checkLayerType(_projectId, _layerType), "LayerType must be in project" );
     }
     Token memory token;
     token.id = nextTokenId;
@@ -790,7 +790,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     token.priceInWei = _price;
     token.imageCID = _imageCID;
     token.maxSupply = _maxSupply; 
-    token.traitType = _traitType;
+    token.layerType = _layerType;
     token.assetType = _assetType;
     token.paused = true;
     token.locked = false;
@@ -802,7 +802,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     }
 
     collectionIdToTokenId[_collectionId].push(nextTokenId);
-    emit TokenCreated(nextTokenId, token.projectId, token.collectionId, token.name, token.description, token.priceInWei, token.imageCID, idToTokenAttributes[nextTokenId], token.maxSupply, token.traitType, token.assetType, true);
+    emit TokenCreated(nextTokenId, token.projectId, token.collectionId, token.name, token.description, token.priceInWei, token.imageCID, idToTokenAttributes[nextTokenId], token.maxSupply, token.layerType, token.assetType, true);
     nextTokenId++; 
   }
 
@@ -864,12 +864,12 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   return addressToTokenIds[_address];
   }
 
-  function traitsOfMaster(uint256 _id)
+  function layersOfCanvas(uint256 _id)
   public
   view
   returns (uint256[] memory)
   {
-  return masterToTraits[_id];
+  return canvasToLayers[_id];
   }
  
   /**
@@ -880,10 +880,10 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   }
 
   /**
-  @dev adjusting transfer function for token to remove trait if
+  @dev adjusting transfer function for token to remove layer if
   note Check that transfer is not a mint event with if statement
   note loop through tokenIds which should be transfered
-  note check that the amount to be transfered is unequipped from master 
+  note check that the amount to be transfered is unequipped from canvas 
   note Loop through amount of tokens to be transfered and adjust token holdings
   */
 
@@ -984,14 +984,14 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     string _imageCID,
     Attribute[] _attributes,
     uint256 _maxSupply,
-    string _traitType,
+    string _layerType,
     AssetType assetType,
     bool _paused
   );
 
-  event MasterEdit(
+  event CanvasEdit(
     uint256 indexed _mNFT,
-    uint256[] indexed _traits
+    uint256[] indexed _layers
   );
 
   event TokenEdit(
