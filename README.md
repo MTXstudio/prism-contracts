@@ -1,6 +1,6 @@
 ## Architecture 
 
-Polygon enables the decentralised storage of ownership records for traits (ERC1155 - semi-fungible tokens) as well as the parent NFT. The parent NFT inherits the metadata from the combination of traits. The metadata connected to the traits and parent NFT are stored in tableland. Tableland enables imutable storage for trait metadata and mutable storage of parent NFT metadata. The images for all traits are stored on IPFS.
+Polygon enables the decentralised storage of ownership records for layers (ERC1155 - semi-fungible tokens) as well as the canvas NFT. The canvas NFT inherits the metadata from the combination of layers. The metadata connected to the layers and canvas NFT are stored on an API. Our API enables storage for layer metadata and mutable storage of canvas NFT metadata. The images for all traits are stored on IPFS.
 
 
 ## Components
@@ -10,14 +10,12 @@ Prism is using a number of open source and commercial projects to enable the ser
 /// DLT & Testing Compontents
 - Polygon - Decentralised Ledger for storing fungible and non-fungible tokens 
 - ERC-1155 - Token Standard combining fungible and non-fungible tokens
-- Hardhat - Ethereum development environment.
+- Hardhat - Ethereum development environment
 - Typescript - Strongly Typed JS
 - Typechain - TS Types for Solidity Smart Contracts
 - Node - JS runtime
 
 /// Data Querying and Availability 
-- Tableland - Mutable and Immutable Metadata storage in SQL Tables  
-- TheGraph - Accessing blockchain events (To be build and added to Repo)
 - IPFS - Decentralised storage network used of artworks and trait images
 
 /// Front-end components
@@ -26,18 +24,6 @@ Prism is using a number of open source and commercial projects to enable the ser
 - Tailwind CSS
 - Web3 modal
 
-
-
-
-
-## Tech
-
-Cyberfrens  uses a number of open source projects to work properly:
-
-- Hardhat - Ethereum development environment.
-- Typescript - Strongly Typed JS
-- Typechain - TS Types for Solidity Smart Contracts
-- Node - JS runtime
 
 
 ## Installation

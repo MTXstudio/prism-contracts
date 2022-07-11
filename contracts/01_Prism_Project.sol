@@ -86,7 +86,7 @@ contract PrismProjects is Ownable {
   uint256 public nextCollectionId = 1;
   string public collectionBaseURI;
   string public projectBaseURI;
-  enum AssetType { MASTER, TRAIT, OTHER}
+  enum AssetType { CANVAS, LAYER}
   
   /**
   @dev mappings
@@ -120,7 +120,7 @@ contract PrismProjects is Ownable {
     string name;
     string description;
     address chef;
-    string[] traitTypes;
+    string[] layerTypes;
   }
 
   struct Collection {
@@ -172,7 +172,7 @@ contract PrismProjects is Ownable {
       string memory _name,
       string memory _description,
       address _chef,
-      string[] memory _traitTypes
+      string[] memory _layerTypes
     ) public 
     {
       Project memory project;
@@ -180,14 +180,14 @@ contract PrismProjects is Ownable {
       project.name = _name;
       project.description = _description;
       project.chef = _chef;
-      project.traitTypes = _traitTypes;
+      project.layerTypes = _layerTypes;
       projects[nextProjectId] = project;
-      emit ProjectCreated(nextProjectId, _description, _name, _chef, _traitTypes);
+      emit ProjectCreated(nextProjectId, _description, _name, _chef, _layerTypes);
       addressToProjectIds[_msgSender()].push(nextProjectId);
       nextProjectId++;  
     }
 
-  function editProject(uint256 _id, string memory _name, string memory _description, address _chef, string[] memory _traitTypes) 
+  function editProject(uint256 _id, string memory _name, string memory _description, address _chef, string[] memory _layerTypes) 
   public
   onlyChef(_id)
   {
@@ -201,31 +201,31 @@ contract PrismProjects is Ownable {
     if (_chef != address(0)) {
       projects[_id].chef = _chef;
     }
-    if (_traitTypes.length != 0) {
-      projects[_id].traitTypes = _traitTypes;
+    if (_layerTypes.length != 0) {
+      projects[_id].layerTypes = _layerTypes;
     }
-    emit ProjectEdit(_id, _name, _description, _chef, _traitTypes);
+    emit ProjectEdit(_id, _name, _description, _chef, _layerTypes);
   }
 
 
-  // if traitType is empty it is master or standard assetType and therefore needs to turn true
-  // if traitType is not empty it needs to be part of the string specified in projects
+  // if layerType is empty it is canvas or standard assetType and therefore needs to turn true
+  // if layerType is not empty it needs to be part of the string specified in projects
 
-  function checkTraitType(uint256 _id, string calldata _traitType)
+  function checkLayerType(uint256 _id, string calldata _layerType)
   external
   view 
   returns(bool)
   {
-    bytes32 traitType_ = keccak256(abi.encodePacked(_traitType));
-    bytes memory _typeString = bytes(_traitType);
-    string[] memory allTypes = projects[_id].traitTypes;
+    bytes32 layerType_ = keccak256(abi.encodePacked(_layerType));
+    bytes memory _typeString = bytes(_layerType);
+    string[] memory allTypes = projects[_id].layerTypes;
 
     if (_typeString.length == 0){
       return true;} 
     else {
       for (uint256 i= 0; i < allTypes.length; i++) {
         bytes32 _typ = keccak256(abi.encodePacked(allTypes[i]));
-        if(_typ == traitType_){
+        if(_typ == layerType_){
           return true;
         }
       }   
@@ -265,12 +265,12 @@ contract PrismProjects is Ownable {
   return projects[_id].chef;
   }
 
-  function viewProjectTraitTypes(uint256 _projectId)
+  function viewProjectLayerTypes(uint256 _projectId)
   external
   view
   returns (string[] memory)
   { 
-  return projects[_projectId].traitTypes;
+  return projects[_projectId].layerTypes;
   }
 
 
@@ -419,7 +419,7 @@ contract PrismProjects is Ownable {
     string _name,
     string _description,
     address _chef,
-    string[] traitTypes
+    string[] layerTypes
   );
 
   event CollectionCreated(
@@ -439,7 +439,7 @@ contract PrismProjects is Ownable {
     string _name,
     string _description,
     address _chef,
-    string[] traitTypes
+    string[] layerTypes
   );
 
   event CollectionEdit(

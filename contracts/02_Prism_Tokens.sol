@@ -98,7 +98,7 @@ interface IERC2981 is IERC165 {
 
 interface IPrismProject{
 
-  enum AssetType {CANVAS, LAYER, OTHER}
+  enum AssetType {CANVAS, LAYER}
 
   struct Collection {
     string name;
@@ -526,7 +526,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   uint256 private feeDenominator = 1000;
 
   string public collectionBaseURI;
-  enum AssetType {CANVAS, LAYER, OTHER}
+  enum AssetType {CANVAS, LAYER}
 
   string[] private canvasAttributesName = ["type"];
   string[] private canvasAttributesValue = ["canvas"];
@@ -705,8 +705,8 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
 
   /**
   @dev token functions
+  @dev editCanvas: Removes all existing layers and adds new ones. Layers need to be removed to be able to trade them
  */
-
   function editCanvas(
     uint256 _mNftId,
     uint256[] memory _layerIds)
@@ -744,6 +744,9 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
       }
   }
 
+  /**
+  @dev Creates tokens and configures them but does not mint them. 
+ */
   function createBatchTokens(
     string[] memory _name, 
     string[] memory _description,
@@ -762,6 +765,9 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     }
   }
 
+  /**
+  @dev Function creates tokens and configures them but does not mint them. 
+ */
   function createToken(
     string memory _name,
     string memory _description, 
@@ -820,6 +826,9 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     emit TokenEdit(_id, tokens[_id].name, tokens[_id].description, tokens[_id].priceInWei, tokens[_id].maxSupply,  isPaused);
   }
 
+  /**
+  @dev Overwrites the stated configurations for tokens. Make sure to fill all variables. 
+ */
   function editToken(
     uint256 _id,
     string memory _name,
