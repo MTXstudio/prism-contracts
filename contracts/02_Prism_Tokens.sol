@@ -894,6 +894,8 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   note loop through tokenIds which should be transfered
   note check that the amount to be transfered is unequipped from canvas 
   note Loop through amount of tokens to be transfered and adjust token holdings
+  note if tokens are canvases, check that the canvases are empty. 
+  note if tokens are layers, check that the layers are unequipped. 
   */
 
   function _beforeTokenTransfer(
@@ -925,8 +927,13 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
         if (from == address(0)){
           addressToTokenIds[to].push(ids[i]);
         } else {
-          require(balanceOf(from, ids[i]) - addressToTokenIdToUsed[from][i] >= amounts[i], "Must un-equip Token");
-          _adjustTokenHolding(from,to,ids[i]);
+          if(tokens[ids[i]].assetType == AssetType.CANVAS){
+            require(canvasToLayers[ids[i]].length == 0, "Must un-equip all layers");
+          } else{
+            require(balanceOf(from, ids[i]) - addressToTokenIdToUsed[from][i] >= amounts[i], "Layers must be unequipped");
+            _adjustTokenHolding(from,to,ids[i]);
+            }
+          }
         } 
       }
     }
