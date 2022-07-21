@@ -79,16 +79,20 @@ contract PrismMinting is VRFConsumerBaseV2 {
     uint256, /* requestId */
     uint256[] memory randomWords
   ) internal override {
-    uint256 randomIndex = (randomWords[0] % projectIdToBundles[requestIdMintRequest[s_requestId].projectId].length) + 1;
+    uint32 randomIndex = (randomWords[0] % projectIdToBundles[requestIdMintRequest[s_requestId].projectId].length) + 1;
     
-    //call mint batch of tokens from the Prism tokens contract
+    //generate array of 1 for amounts
+    uint32[] amountsArray = new uint32[](projectIdToBundles[requestIdMintRequest[s_requestId].projectId][randomIndex].tokenIds.length);
+    for (uint32 i = 0; i < amountsArray.length; i++) {
+      amountsArray[i] = 1;
+    }
+    //call mintBatch of tokens from the Prism tokens contract
     prismTokensContract.mintBatch(
       projectIdToBundles[requestIdMintRequest[s_requestId].projectId][randomIndex].tokenIds,
-      1,
+      amountsArray,
       msg.sender,
       0x0
     );
-
     //remove the request from the map
     delete requestIdMintRequest[s_requestId];
     //remove the bundle from the map
