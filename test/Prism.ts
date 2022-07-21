@@ -71,16 +71,17 @@ describe('Prism', () => {
   it('check project, collection & token setup', async () => {
     
     const project1 = await nftProjects.projects(1)
-    const cyberpass = await nftProjects.collections(1)
+    const layerTokens = await nftProjects.collections(0)
+    const canvasTokens = await nftProjects.collections(1)
 
     expect(project1.chef).equal(projectChef.address)
     expect(project1.name).equal("Cyberfrens")
     
-    expect(cyberpass.projectId).equal(1)
-    expect(cyberpass.assetType).equal(2)
-    expect(cyberpass.manager).equal(collectionManager.address)
-    expect(cyberpass.maxInvocations).equal(maxInvocations)
-    expect(cyberpass.invocations).equal(0)
+    expect(layerTokens.projectId).equal(0)
+    expect(layerTokens.assetType).equal(0)
+    expect(layerTokens.manager).equal(collectionManager.address)
+    expect(layerTokens.maxInvocations).equal(maxInvocations)
+    expect(layerTokens.invocations).equal(0)
 
   });
 
