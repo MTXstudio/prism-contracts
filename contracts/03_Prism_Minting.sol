@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
-// An example of a consumer contract that relies on a subscription for funding.
 pragma solidity ^0.8.4;
 
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
 interface IPrismTokens{
-    function mintBatch(uint256[] memory _ids, uint256[] memory _amounts, address _to, bytes memory _data) public; 
+    function mintBatch(uint256[] memory _ids, uint256[] memory _amounts, address _to, bytes memory _data) external; 
 }
-
 
 contract PrismMinting is VRFConsumerBaseV2 {
 
@@ -20,7 +18,6 @@ contract PrismMinting is VRFConsumerBaseV2 {
   mapping (uint256 => Bundle[]) projectIdToBundles;
   //requestId => msg.sender
   mapping (uint256 => MintRequest) requestIdMintRequest;
-  
 
   /**
   @dev vrf
@@ -53,12 +50,20 @@ contract PrismMinting is VRFConsumerBaseV2 {
     uint256 projectId;
   }
 
-
-  constructor(address _prismTokensContract, uint64 subscriptionId) PrismMinting(vrfCoordinator) {
-    prismTokensContract = _prismTokensContract;
+   constructor(uint64 subscriptionId) VRFConsumerBaseV2(vrfCoordinator) {
     COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
     s_owner = msg.sender;
     s_subscriptionId = subscriptionId;
+  }
+
+  function setPrismTokensContract(address _prismTokensContract) public onlyOwner {
+    prismTokensContract = _prismTokensContract;
+  }
+
+  function setProjectIdToBundles(uint256 _projectId, uint256[][] memory _bundles) public onlyOwner {
+    for (uint256 i = 0; i < _bundles.length; i++) {
+      projectIdToBundles[_projectId][i].tokenIds = _bundles[i];
+    }
   }
 
   // Assumes the subscription is funded sufficiently.
@@ -79,19 +84,19 @@ contract PrismMinting is VRFConsumerBaseV2 {
     uint256, /* requestId */
     uint256[] memory randomWords
   ) internal override {
-    uint32 randomIndex = (randomWords[0] % projectIdToBundles[requestIdMintRequest[s_requestId].projectId].length) + 1;
+    uint256 randomIndex = (randomWords[0] % projectIdToBundles[requestIdMintRequest[s_requestId].projectId].length) + 1;
     
     //generate array of 1 for amounts
-    uint32[] amountsArray = new uint32[](projectIdToBundles[requestIdMintRequest[s_requestId].projectId][randomIndex].tokenIds.length);
+    uint256[] memory amountsArray = new uint256[](projectIdToBundles[requestIdMintRequest[s_requestId].projectId][randomIndex].tokenIds.length);
     for (uint32 i = 0; i < amountsArray.length; i++) {
       amountsArray[i] = 1;
     }
     //call mintBatch of tokens from the Prism tokens contract
-    prismTokensContract.mintBatch(
+    IPrismTokens(prismTokensContract).mintBatch(
       projectIdToBundles[requestIdMintRequest[s_requestId].projectId][randomIndex].tokenIds,
       amountsArray,
       msg.sender,
-      0x0
+      abi.encode(0)
     );
     //remove the request from the map
     delete requestIdMintRequest[s_requestId];

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: APACHE 2.0
-pragma solidity 0.8.1;
+pragma solidity 0.8.4;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
@@ -657,7 +657,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
         address _to,
         bytes memory _data
     ) 
-    public 
+    external
     {
       for (uint256 i=0;i < _ids.length; i++){
         checkBatchMint(_ids[i],_amounts[i]);
@@ -727,7 +727,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
 
       }
       canvasToLayers[_mNftId] = _layerIds;
-      CanvasEdit(_mNftId, canvasToLayers[_mNftId]);
+      emit CanvasEdit(_mNftId, canvasToLayers[_mNftId]);
       return canvasToLayers[_mNftId];   
   } 
 
@@ -937,7 +937,6 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
         } 
       }
     }
-  }
 
   /**
   @dev adjusting TokenHoldings of users
@@ -979,7 +978,6 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     uint256 royaltyAmount = (_salePrice * royalty) / feeDenominator;
     return(receiver, royaltyAmount);
   }
-
 
   function setPrismProjectContract(address _prismProjectContract) public onlyOwner(){
     prismProjectContract = _prismProjectContract;
