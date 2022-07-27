@@ -652,17 +652,17 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
 
 
   function mintBatch(
-        uint256[] memory _ids,
+        uint256[] memory _collectionIds,
         uint256[] memory _amounts,
         address _to,
         bytes memory _data
     ) 
     external
     {
-      for (uint256 i=0;i < _ids.length; i++){
-        checkBatchMint(_ids[i],_amounts[i]);
+      for (uint256 i=0;i < _collectionIds.length; i++){
+        checkBatchMint(_collectionIds[i],_amounts[i]);
       }
-      _mintBatch(_to,_ids, _amounts, _data);
+      _mintBatch(_to,_collectionIds, _amounts, _data);
     }
 
   function checkBatchMint(
