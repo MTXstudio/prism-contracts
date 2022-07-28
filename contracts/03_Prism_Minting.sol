@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.7;
 
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
@@ -15,9 +15,9 @@ contract PrismMinting is VRFConsumerBaseV2 {
   */
   address public prismTokensContract;
    //projectId => bundles
-  mapping (uint256 => Bundle[]) projectIdToBundles;
+  mapping (uint256 => Bundle[]) private projectIdToBundles;
   //requestId => msg.sender
-  mapping (uint256 => MintRequest) requestIdMintRequest;
+  mapping (uint256 => MintRequest) public requestIdToMintRequest;
 
   /**
   @dev vrf
@@ -28,12 +28,12 @@ contract PrismMinting is VRFConsumerBaseV2 {
   // Mumbai settings.
   address vrfCoordinator = 0x7a1BaC17Ccc5b313516C5E16fb24f7659aA5ebed;
   bytes32 keyHash = 0x4b09e658ed251bcafeebbc69400383d49f344ace09b9576fe248bb02c003fe9f;
-  uint32 callbackGasLimit = 100000;
+  uint32 callbackGasLimit = 300000;
   
   // The default is 3.
   uint16 requestConfirmations = 3;
   // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
-  uint32 numWords =  1;
+  uint32 numWords =  2;
   uint256[] public s_randomWords;
   uint256 public s_requestId;
   address s_owner;
@@ -77,31 +77,31 @@ contract PrismMinting is VRFConsumerBaseV2 {
       numWords
     );
 
-    requestIdMintRequest[s_requestId] = MintRequest(msg.sender, projectId);
+    requestIdToMintRequest[s_requestId] = MintRequest(msg.sender, projectId);
   }
   
   function fulfillRandomWords(
     uint256, /* requestId */
     uint256[] memory randomWords
   ) internal override {
-    uint256 randomIndex = (randomWords[0] % projectIdToBundles[requestIdMintRequest[s_requestId].projectId].length) + 1;
+    uint256 randomIndex = (randomWords[0] % projectIdToBundles[requestIdToMintRequest[s_requestId].projectId].length) + 1;
     
-    //generate array of 1 for amounts
-    uint256[] memory amountsArray = new uint256[](projectIdToBundles[requestIdMintRequest[s_requestId].projectId][randomIndex].tokenIds.length);
-    for (uint32 i = 0; i < amountsArray.length; i++) {
-      amountsArray[i] = 1;
+    //generate array of 1 for amounts to be minted for each token in the bundle
+    uint256[] memory amountsToMintPerTokenId = new uint256[](projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex].tokenIds.length);
+    for (uint32 i = 0; i < amountsToMintPerTokenId.length; i++) {
+      amountsToMintPerTokenId[i] = 1;
     }
     //call mintBatch of tokens from the Prism tokens contract
     IPrismTokens(prismTokensContract).mintBatch(
-      projectIdToBundles[requestIdMintRequest[s_requestId].projectId][randomIndex].tokenIds,
-      amountsArray,
+      projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex].tokenIds,
+      amountsToMintPerTokenId,
       msg.sender,
       abi.encode(0)
     );
     //remove the request from the map
-    delete requestIdMintRequest[s_requestId];
+    delete requestIdToMintRequest[s_requestId];
     //remove the bundle from the map
-    delete projectIdToBundles[requestIdMintRequest[s_requestId].projectId][randomIndex];
+    delete projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex];
   }
 
   modifier onlyOwner() {

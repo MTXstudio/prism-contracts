@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: APACHE 2.0
-pragma solidity >=0.8.4;
+pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 

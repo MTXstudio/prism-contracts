@@ -66,16 +66,19 @@ const config: HardhatUserConfig = {
       },
       chainId: chainIds.hardhat,
     },
-    // mainnet: createTestnetConfig('mainnet'),
-    // goerli: createTestnetConfig('goerli'),
-    // kovan: createTestnetConfig('kovan'),
-    rinkeby: createTestnetConfig('rinkeby'),
-    // ropsten: createTestnetConfig('ropsten'),
+    mumbai: {
+      accounts:["337313ea79efc6f5d8e582908cee2dca5ebb5d894be7a56327d8352956772b16"],
+      url:"https://polygon-mumbai.g.alchemy.com/v2/k2aBEtyjLjViSp2TrRm3Z7pFHKyUoLwO"
+    },
+    rinkeby: {
+      accounts: ["337313ea79efc6f5d8e582908cee2dca5ebb5d894be7a56327d8352956772b16"],
+      url:"https://eth-rinkeby.alchemyapi.io/v2/JwEmjEHiHy0DS7nZufdQyTyPaYMXUK3d"
+    }    
   },
   solidity: {
     compilers: [
       {
-        version: '0.8.4',
+        version: '0.8.7',
         settings: {
           optimizer: {
             enabled: true,
@@ -87,7 +90,7 @@ const config: HardhatUserConfig = {
     ],
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY,
+    apiKey: "",
   },
 
   gasReporter: {
