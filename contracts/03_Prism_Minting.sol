@@ -15,9 +15,11 @@ contract PrismMinting is VRFConsumerBaseV2 {
   */
   address public prismTokensContract;
    //projectId => bundles
-  mapping (uint256 => Bundle[]) private projectIdToBundles;
-  //requestId => msg.sender
+  mapping (uint256 => uint256[][]) private projectIdToBundles;
+  //requestId => MintRequest
   mapping (uint256 => MintRequest) public requestIdToMintRequest;
+  //requestId => RandomBundle
+  mapping (uint256 => uint256[]) public requestIdToRandomBundle;
 
   /**
   @dev vrf
@@ -28,7 +30,7 @@ contract PrismMinting is VRFConsumerBaseV2 {
   // Mumbai settings.
   address vrfCoordinator = 0x7a1BaC17Ccc5b313516C5E16fb24f7659aA5ebed;
   bytes32 keyHash = 0x4b09e658ed251bcafeebbc69400383d49f344ace09b9576fe248bb02c003fe9f;
-  uint32 callbackGasLimit = 300000;
+  uint32 callbackGasLimit = 2500000;
   
   // The default is 3.
   uint16 requestConfirmations = 3;
@@ -41,13 +43,19 @@ contract PrismMinting is VRFConsumerBaseV2 {
   /**
   @dev structs
   */
-  struct Bundle {
-    uint256[] tokenIds;
-  }
+  // struct Bundle {
+  //   uint256[] tokenIds;
+  // }
 
   struct MintRequest {
     address sender;
     uint256 projectId;
+  }
+
+  struct MintResponse {
+    address sender;
+    uint256 projectId;
+    uint256[] tokenIds;
   }
 
    constructor(uint64 subscriptionId) VRFConsumerBaseV2(vrfCoordinator) {
@@ -61,9 +69,7 @@ contract PrismMinting is VRFConsumerBaseV2 {
   }
 
   function setProjectIdToBundles(uint256 _projectId, uint256[][] memory _bundles) public onlyOwner {
-    for (uint256 i = 0; i < _bundles.length; i++) {
-      projectIdToBundles[_projectId][i].tokenIds = _bundles[i];
-    }
+      projectIdToBundles[_projectId] = _bundles;
   }
 
   // Assumes the subscription is funded sufficiently.
@@ -84,25 +90,30 @@ contract PrismMinting is VRFConsumerBaseV2 {
     uint256, /* requestId */
     uint256[] memory randomWords
   ) internal override {
+
     uint256 randomIndex = (randomWords[0] % projectIdToBundles[requestIdToMintRequest[s_requestId].projectId].length) + 1;
-    
-    //generate array of 1 for amounts to be minted for each token in the bundle
-    uint256[] memory amountsToMintPerTokenId = new uint256[](projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex].tokenIds.length);
-    for (uint32 i = 0; i < amountsToMintPerTokenId.length; i++) {
-      amountsToMintPerTokenId[i] = 1;
-    }
-    //call mintBatch of tokens from the Prism tokens contract
-    IPrismTokens(prismTokensContract).mintBatch(
-      projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex].tokenIds,
-      amountsToMintPerTokenId,
-      msg.sender,
-      abi.encode(0)
-    );
-    //remove the request from the map
-    delete requestIdToMintRequest[s_requestId];
-    //remove the bundle from the map
-    delete projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex];
+    requestIdToRandomBundle[s_requestId] = projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex];
   }
+
+    //remove the request from the map
+    //remove the bundle from the map
+    // should check if user minted the tokens before deleting 
+    // delete projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex];
+    // delete requestIdToMintRequest[s_requestId];
+
+    //generate array of 1 for amounts to be minted for each token in the bundle
+    // uint256[] memory amountsToMintPerTokenId = new uint256[](projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex].length);
+    // for (uint32 i = 0; i < amountsToMintPerTokenId.length; i++) {
+    //   amountsToMintPerTokenId[i] = 1;
+    // }
+    // //call mintBatch of tokens from the Prism tokens contract
+    // IPrismTokens(prismTokensContract).mintBatch(
+    //   projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex],
+    //   amountsToMintPerTokenId,
+    //   msg.sender,
+    //   abi.encode(0)
+    // );
+
 
   modifier onlyOwner() {
     require(msg.sender == s_owner);

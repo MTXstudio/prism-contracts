@@ -21,9 +21,8 @@ async function main() {
     // contractTokens = await ethers.getContractAt("PrismToken", contractAddresses.PrismTokens, deployer) as PrismToken
     contractMinting = await ethers.getContractAt("PrismMinting", contractAddresses.PrismMinting, deployer) as PrismMinting
 
-    // await contractMinting.setProjectIdToBundles(1, [[1, 2, 3], [2, 2, 3], [3, 3, 3, 3]], { gasLimit: 10000000 })
-
-    await contractMinting.mintRandomBundle(1, { gasLimit: 10000000 })
+    await contractMinting.mintRandomBundle(1, { gasLimit: 10000000, gasPrice: 40000000000 })
+    console.log(result)
 }
 
 main().catch((error) => {
