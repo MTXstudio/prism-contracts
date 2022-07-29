@@ -715,7 +715,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   returns (uint256[] memory)
   {
     require(tokens[_mNftId].assetType == AssetType.CANVAS ,"_mNFTId needs to be Canvas");
-    
+
     for (uint256 i=0;i < canvasToLayers[_mNftId].length; i++){
       addressToTokenIdToUsed[_msgSender()][canvasToLayers[_mNftId][i]]--;
     }
@@ -730,6 +730,15 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
       emit CanvasEdit(_mNftId, canvasToLayers[_mNftId]);
       return canvasToLayers[_mNftId];   
   } 
+
+  function removeLayersFromCanvas(uint256 _canvasId) public {
+    require(tokens[_canvasId].assetType == AssetType.CANVAS ,"_canvasId needs to be Canvas");
+    for (uint256 i=0;i < canvasToLayers[_canvasId].length; i++){
+      addressToTokenIdToUsed[_msgSender()][canvasToLayers[_canvasId][i]]--;
+    }
+    canvasToLayers[_canvasId] = new uint256[](0);
+    emit CanvasEdit(_canvasId, canvasToLayers[_canvasId]);
+  }
 
   function createBatchCanvases(
     string memory _name,
