@@ -18,8 +18,8 @@ contract PrismMinting is VRFConsumerBaseV2 {
   mapping (uint256 => uint256[][]) private projectIdToBundles;
   //requestId => MintRequest
   mapping (uint256 => MintRequest) public requestIdToMintRequest;
-  //requestId => RandomBundle
-  mapping (uint256 => uint256[]) public requestIdToRandomBundle;
+  //address => RandomBundle
+  mapping (uint256 => RandomBundle) public addressToRandomBundle;
 
   /**
   @dev vrf
@@ -43,22 +43,18 @@ contract PrismMinting is VRFConsumerBaseV2 {
   /**
   @dev structs
   */
-  // struct Bundle {
-  //   uint256[] tokenIds;
-  // }
 
   struct MintRequest {
     address sender;
     uint256 projectId;
   }
 
-  struct MintResponse {
-    address sender;
+  struct RandomBundle {
     uint256 projectId;
-    uint256[] tokenIds;
+    uint256 index;
   }
 
-   constructor(uint64 subscriptionId) VRFConsumerBaseV2(vrfCoordinator) {
+  constructor(uint64 subscriptionId) VRFConsumerBaseV2(vrfCoordinator) {
     COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
     s_owner = msg.sender;
     s_subscriptionId = subscriptionId;
@@ -72,9 +68,8 @@ contract PrismMinting is VRFConsumerBaseV2 {
       projectIdToBundles[_projectId] = _bundles;
   }
 
-  // Assumes the subscription is funded sufficiently.
-  function mintRandomBundle(uint64 projectId) external onlyOwner {
-    // Will revert if subscription is not set and funded.
+  //1. request random bundle (index)
+  function selectRandomBundle(uint64 projectId) external {
     s_requestId = COORDINATOR.requestRandomWords(
       keyHash,
       s_subscriptionId,
@@ -86,34 +81,41 @@ contract PrismMinting is VRFConsumerBaseV2 {
     requestIdToMintRequest[s_requestId] = MintRequest(msg.sender, projectId);
   }
   
+  //2. callback triggered by VRFCoordinatorV2Interface
   function fulfillRandomWords(
     uint256, /* requestId */
     uint256[] memory randomWords
   ) internal override {
 
     uint256 randomIndex = (randomWords[0] % projectIdToBundles[requestIdToMintRequest[s_requestId].projectId].length) + 1;
-    requestIdToRandomBundle[s_requestId] = projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex];
+    addressToRandomBundle[projectIdToBundles[requestIdToMintRequest[s_requestId].sender] = RandomBundle(requestIdToMintRequest[s_requestId].projectId, randomIndex);
+    
+    delete requestIdToMintRequest[s_requestId]
   }
 
-    //remove the request from the map
-    //remove the bundle from the map
-    // should check if user minted the tokens before deleting 
-    // delete projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex];
-    // delete requestIdToMintRequest[s_requestId];
-
+  //3. prompt user to mint tokens - must be called from the frontend.
+  function mintRandomBundle() external onlyBundleOwner {
     //generate array of 1 for amounts to be minted for each token in the bundle
-    // uint256[] memory amountsToMintPerTokenId = new uint256[](projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex].length);
-    // for (uint32 i = 0; i < amountsToMintPerTokenId.length; i++) {
-    //   amountsToMintPerTokenId[i] = 1;
-    // }
-    // //call mintBatch of tokens from the Prism tokens contract
-    // IPrismTokens(prismTokensContract).mintBatch(
-    //   projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex],
-    //   amountsToMintPerTokenId,
-    //   msg.sender,
-    //   abi.encode(0)
-    // );
+    uint256[] memory amountsToMintPerTokenId = new uint256[](addressToRandomBundle[msg.sender].length);
+    for (uint32 i = 0; i < amountsToMintPerTokenId.length; i++) {
+      amountsToMintPerTokenId[i] = 1;
+    }
+    //call mintBatch of tokens from the Prism tokens contract
+    IPrismTokens(prismTokensContract).mintBatch(
+      projectIdToBundles[addressToRandomBundle[msg.sender].projectId][addressToRandomBundle[msg.sender].index],
+      amountsToMintPerTokenId,
+      msg.sender,
+      abi.encode(0)
+    );
 
+    delete projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex];
+    delete addressToRandomBundle[msg.sender];
+  }
+
+  modifier onlyBundleOwner {
+    require(addressToRandomBundle[msg.sender] != 0);
+    _;
+  }
 
   modifier onlyOwner() {
     require(msg.sender == s_owner);

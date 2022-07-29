@@ -22,7 +22,6 @@ async function main() {
     contractMinting = await ethers.getContractAt("PrismMinting", contractAddresses.PrismMinting, deployer) as PrismMinting
 
     await contractMinting.mintRandomBundle(1, { gasLimit: 10000000, gasPrice: 40000000000 })
-    console.log(result)
 }
 
 main().catch((error) => {
