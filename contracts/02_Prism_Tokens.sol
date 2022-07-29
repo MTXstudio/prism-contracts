@@ -731,7 +731,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
       return canvasToLayers[_mNftId];   
   } 
 
-  function removeLayersFromCanvas(uint256 _canvasId) public {
+  function removeLayersFromCanvas(uint256 _canvasId) internal {
     require(tokens[_canvasId].assetType == AssetType.CANVAS ,"_canvasId needs to be Canvas");
     for (uint256 i=0;i < canvasToLayers[_canvasId].length; i++){
       addressToTokenIdToUsed[_msgSender()][canvasToLayers[_canvasId][i]]--;
@@ -937,7 +937,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
           addressToTokenIds[to].push(ids[i]);
         } else {
           if(tokens[ids[i]].assetType == AssetType.CANVAS){
-            require(canvasToLayers[ids[i]].length == 0, "Must un-equip all layers");
+            removeLayersFromCanvas(ids[i]);
           } else{
             require(balanceOf(from, ids[i]) - addressToTokenIdToUsed[from][i] >= amounts[i], "Layers must be unequipped");
             _adjustTokenHolding(from,to,ids[i]);
