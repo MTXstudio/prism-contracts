@@ -19,7 +19,7 @@ contract PrismMinting is VRFConsumerBaseV2 {
   //requestId => MintRequest
   mapping (uint256 => MintRequest) public requestIdToMintRequest;
   //address => RandomBundle
-  mapping (uint256 => RandomBundle) public addressToRandomBundle;
+  mapping (address => RandomBundle) public addressToRandomBundle;
 
   /**
   @dev vrf
@@ -88,9 +88,9 @@ contract PrismMinting is VRFConsumerBaseV2 {
   ) internal override {
 
     uint256 randomIndex = (randomWords[0] % projectIdToBundles[requestIdToMintRequest[s_requestId].projectId].length) + 1;
-    addressToRandomBundle[projectIdToBundles[requestIdToMintRequest[s_requestId].sender] = RandomBundle(requestIdToMintRequest[s_requestId].projectId, randomIndex);
+    addressToRandomBundle[requestIdToMintRequest[s_requestId].sender] = RandomBundle(requestIdToMintRequest[s_requestId].projectId, randomIndex);
     
-    delete requestIdToMintRequest[s_requestId]
+    delete requestIdToMintRequest[s_requestId];
   }
 
   //3. prompt user to mint tokens - must be called from the frontend.
@@ -108,12 +108,12 @@ contract PrismMinting is VRFConsumerBaseV2 {
       abi.encode(0)
     );
 
-    delete projectIdToBundles[requestIdToMintRequest[s_requestId].projectId][randomIndex];
+    delete projectIdToBundles[addressToRandomBundle[msg.sender].projectId][addressToRandomBundle[msg.sender].index];
     delete addressToRandomBundle[msg.sender];
   }
 
   modifier onlyBundleOwner {
-    require(addressToRandomBundle[msg.sender] != 0);
+    require(addressToRandomBundle[msg.sender].projectId != 0);
     _;
   }
 
