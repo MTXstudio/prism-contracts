@@ -96,7 +96,7 @@ contract PrismMinting is VRFConsumerBaseV2 {
   //3. prompt user to mint tokens - must be called from the frontend.
   function mintRandomBundle() external onlyBundleOwner {
     //generate array of 1 for amounts to be minted for each token in the bundle
-    uint256[] memory amountsToMintPerTokenId = new uint256[](addressToRandomBundle[msg.sender].length);
+    uint256[] memory amountsToMintPerTokenId = new uint256[](projectIdToBundles[addressToRandomBundle[msg.sender].projectId][addressToRandomBundle[msg.sender].index].length);
     for (uint32 i = 0; i < amountsToMintPerTokenId.length; i++) {
       amountsToMintPerTokenId[i] = 1;
     }
