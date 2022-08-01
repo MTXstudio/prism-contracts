@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import chai, { expect } from 'chai'
-import { PrismProjects, Prism1155__factory, PrismProjects__factory } from '../typechain'
+import { PrismProjects, PrismProjects__factory } from '../typechain'
 import { PrismToken, PrismToken__factory } from '../typechain'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { BigNumber } from 'ethers'
@@ -62,9 +62,9 @@ describe('Prism', () => {
     await nftProjects.setPrismTokenContract(nftTokens.address)
 
     await nftProjects.createProject("Cyberfrens", "Project Description", projectChef.address,["armor","head","body"])
-    await nftProjects.createCollection("Cyberfrens: Cyberpass", "Collection Description",maxInvocations,1, collectionManager.address,2, royalties)
-    await nftProjects.createCollection("Cyberfrens: Original Traits", "Collection Description", maxInvocations,1, collectionManager.address,1, royalties)
-    await nftProjects.createCollection("Cyberfrens: Original Master", "Collection Description", maxInvocations,1, collectionManager.address,0, royalties)
+    await nftProjects.createCollection("Cyberfrens: Original Layers", "Collection Description", maxInvocations,1, collectionManager.address,1, royalties)
+    await nftProjects.createCollection("Cyberfrens: Original Layers", "Collection Description", maxInvocations,1, collectionManager.address,1, royalties)
+    await nftProjects.createCollection("Cyberfrens: Original Canvas", "Collection Description", maxInvocations,1, collectionManager.address,0, royalties)
     await nftTokens.createBatchTokens(tokenName, tokenDescription, tokenPrices, tokenCID, tokenAttributesName, tokenAttributesValue, tokenCollection,tokenMaxSupplies,tokenTraits,tokenAsset)
     await nftTokens.createToken("tokenName", "tokenDescription", 1, 'tokenCID', ["name", "name", "name", "name", "name", "name"], ["value", "value", "value", "value", "value", "value"], 1,1,"head",0)
   })
@@ -72,16 +72,17 @@ describe('Prism', () => {
   it('check project, collection & token setup', async () => {
     
     const project1 = await nftProjects.projects(1)
-    const cyberpass = await nftProjects.collections(1)
-
+    const layerTokens = await nftProjects.collections(1)
+    const canvasTokens = await nftProjects.collections(2)
+    
     expect(project1.chef).equal(projectChef.address)
     expect(project1.name).equal("Cyberfrens")
     
-    expect(cyberpass.projectId).equal(1)
-    expect(cyberpass.assetType).equal(2)
-    expect(cyberpass.manager).equal(collectionManager.address)
-    expect(cyberpass.maxInvocations).equal(maxInvocations)
-    expect(cyberpass.invocations).equal(0)
+    expect(layerTokens.projectId).equal(1)
+    expect(layerTokens.assetType).equal(1)
+    expect(layerTokens.manager).equal(collectionManager.address)
+    expect(layerTokens.maxInvocations).equal(maxInvocations)
+    expect(layerTokens.invocations).equal(0)
 
   });
 
@@ -101,25 +102,25 @@ describe('Prism', () => {
   it('equip to MasterNFT', async () => {
     
     await nftTokens.mintBatch([1,2,3],[1,3,1],collectionManager.address,[])
-    await (await nftTokens.connect(collectionManager).editMaster(3,[2,2,2]))
+    await (await nftTokens.connect(collectionManager).editCanvas(3,[2,2,2]))
     
     expect(await nftTokens.balanceOf(collectionManager.address,2)).equal(3) 
     expect(await nftTokens.balanceOf(collectionManager.address,3)).equal(1)
 
-    expect((await nftTokens.traitsOfMaster(3))[0].eq(2))
-    expect((await nftTokens.traitsOfMaster(3))[1].eq(2))
-    expect((await nftTokens.traitsOfMaster(3))[2].eq(2))
+    expect((await nftTokens.layersOfCanvas(3))[0].eq(2))
+    expect((await nftTokens.layersOfCanvas(3))[1].eq(2))
+    expect((await nftTokens.layersOfCanvas(3))[2].eq(2))
   });
 
   it('unequip trait from MasterNFT', async () => {
     
     await nftTokens.mintBatch([1,2,3],[1,3,1],collectionManager.address,[])
-    await (await nftTokens.connect(collectionManager).editMaster(3,[2,2,2]))
-    await (await nftTokens.connect(collectionManager).editMaster(3,[2,2]))
+    await (await nftTokens.connect(collectionManager).editCanvas(3,[2,2,2]))
+    await (await nftTokens.connect(collectionManager).editCanvas(3,[2,2]))
     
-    expect((await nftTokens.traitsOfMaster(3))[0].eq(2))
-    expect((await nftTokens.traitsOfMaster(3))[1].eq(2))
-    expect((await nftTokens.traitsOfMaster(3))[2]).equal(undefined)
+    expect((await nftTokens.layersOfCanvas(3))[0].eq(2))
+    expect((await nftTokens.layersOfCanvas(3))[1].eq(2))
+    expect((await nftTokens.layersOfCanvas(3))[2]).equal(undefined)
   });
 
 
@@ -127,7 +128,16 @@ describe('Prism', () => {
   it('unpause collection and token', async () => {
     
     expect(await nftProjects.viewPausedStatus(1)).equal(true)
-    await nftProjects.editCollection(1,1,"Cyberfrens: Cyberpass", "Description", maxInvocations,collectionManager.address,royalties,2,false)
+    await nftProjects.editCollection(
+      1,
+      1,
+      "Cyberfrens: Cyberpass", 
+      "Description", 
+      maxInvocations,
+      collectionManager.address,
+      royalties,
+      1,
+      false)
     expect(await nftProjects.viewPausedStatus(1)).equal(false)
 
     expect(await nftProjects.viewPausedStatus(2)).equal(true)
@@ -154,18 +164,18 @@ describe('Prism', () => {
     expect(await (await nftProjects.projects(1)).id).equal(1)
     expect(await (await nftProjects.projects(1)).chef).equal(projectChef.address)
     expect(await (await nftProjects.projects(1)).name).equal("Cyberfrens")
-    expect(await (await nftProjects.viewProjectTraitTypes(1))[0]).equal('armor')
-    expect(await (await nftProjects.viewProjectTraitTypes(1))[1]).equal('head')
-    expect(await (await nftProjects.viewProjectTraitTypes(1))[2]).equal('body')
+    expect(await (await nftProjects.viewProjectLayerTypes(1))[0]).equal('armor')
+    expect(await (await nftProjects.viewProjectLayerTypes(1))[1]).equal('head')
+    expect(await (await nftProjects.viewProjectLayerTypes(1))[2]).equal('body')
 
     await nftProjects.editProject(1,"Cyberfrenz", "Description", collectionManager.address,["armor","feet","jewelery"])
 
     expect(await (await nftProjects.projects(1)).id).equal(1)
     expect(await (await nftProjects.projects(1)).chef).equal(collectionManager.address)
     expect(await (await nftProjects.projects(1)).name).equal("Cyberfrenz")
-    expect(await (await nftProjects.viewProjectTraitTypes(1))[0]).equal('armor')
-    expect(await (await nftProjects.viewProjectTraitTypes(1))[1]).equal('feet')
-    expect(await (await nftProjects.viewProjectTraitTypes(1))[2]).equal('jewelery')
+    expect(await (await nftProjects.viewProjectLayerTypes(1))[0]).equal('armor')
+    expect(await (await nftProjects.viewProjectLayerTypes(1))[1]).equal('feet')
+    expect(await (await nftProjects.viewProjectLayerTypes(1))[2]).equal('jewelery')
     
   });
 
@@ -174,8 +184,8 @@ describe('Prism', () => {
     
     expect(await (await nftProjects.collections(1)).id).equal(1)
     expect(await (await nftProjects.collections(1)).invocations).equal(0)
-    expect(await (await nftProjects.collections(1)).name).equal("Cyberfrens: Cyberpass")
-    expect(await (await nftProjects.collections(1)).assetType).equal(2)
+    expect(await (await nftProjects.collections(1)).name).equal("Cyberfrens: Original Layers")
+    expect(await (await nftProjects.collections(1)).assetType).equal(1)
     expect(await (await nftProjects.collections(1)).manager).equal(collectionManager.address)
     expect(await (await nftProjects.collections(1)).maxInvocations).equal(900)
     expect(await (await nftProjects.collections(1)).royalties).equal(royalties*100)
@@ -194,6 +204,5 @@ describe('Prism', () => {
     expect(await (await nftProjects.collections(1)).projectId).equal(1)
     expect(await (await nftProjects.collections(1)).paused).equal(false)
   });
-
 
 })

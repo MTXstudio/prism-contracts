@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: APACHE 2.0
-pragma solidity 0.8.1;
+pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
@@ -652,17 +652,17 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
 
 
   function mintBatch(
-        uint256[] memory _ids,
+        uint256[] memory _collectionIds,
         uint256[] memory _amounts,
         address _to,
         bytes memory _data
     ) 
-    public 
+    external
     {
-      for (uint256 i=0;i < _ids.length; i++){
-        checkBatchMint(_ids[i],_amounts[i]);
+      for (uint256 i=0;i < _collectionIds.length; i++){
+        checkBatchMint(_collectionIds[i],_amounts[i]);
       }
-      _mintBatch(_to,_ids, _amounts, _data);
+      _mintBatch(_to,_collectionIds, _amounts, _data);
     }
 
   function checkBatchMint(
@@ -715,7 +715,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
   returns (uint256[] memory)
   {
     require(tokens[_mNftId].assetType == AssetType.CANVAS ,"_mNFTId needs to be Canvas");
-    
+
     for (uint256 i=0;i < canvasToLayers[_mNftId].length; i++){
       addressToTokenIdToUsed[_msgSender()][canvasToLayers[_mNftId][i]]--;
     }
@@ -727,9 +727,18 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
 
       }
       canvasToLayers[_mNftId] = _layerIds;
-      CanvasEdit(_mNftId, canvasToLayers[_mNftId]);
+      emit CanvasEdit(_mNftId, canvasToLayers[_mNftId]);
       return canvasToLayers[_mNftId];   
   } 
+
+  function removeLayersFromCanvas(uint256 _canvasId) internal {
+    require(tokens[_canvasId].assetType == AssetType.CANVAS ,"_canvasId needs to be Canvas");
+    for (uint256 i=0;i < canvasToLayers[_canvasId].length; i++){
+      addressToTokenIdToUsed[_msgSender()][canvasToLayers[_canvasId][i]]--;
+    }
+    canvasToLayers[_canvasId] = new uint256[](0);
+    emit CanvasEdit(_canvasId, canvasToLayers[_canvasId]);
+  }
 
   function createBatchCanvases(
     string memory _name,
@@ -928,7 +937,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
           addressToTokenIds[to].push(ids[i]);
         } else {
           if(tokens[ids[i]].assetType == AssetType.CANVAS){
-            require(canvasToLayers[ids[i]].length == 0, "Must un-equip all layers");
+            removeLayersFromCanvas(ids[i]);
           } else{
             require(balanceOf(from, ids[i]) - addressToTokenIdToUsed[from][i] >= amounts[i], "Layers must be unequipped");
             _adjustTokenHolding(from,to,ids[i]);
@@ -937,7 +946,6 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
         } 
       }
     }
-  }
 
   /**
   @dev adjusting TokenHoldings of users
@@ -979,7 +987,6 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     uint256 royaltyAmount = (_salePrice * royalty) / feeDenominator;
     return(receiver, royaltyAmount);
   }
-
 
   function setPrismProjectContract(address _prismProjectContract) public onlyOwner(){
     prismProjectContract = _prismProjectContract;

@@ -1,29 +1,63 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
-import { ethers } from "hardhat";
+import { ethers } from 'hardhat'
+import { PrismMinting, PrismMinting__factory, PrismProjects, PrismProjects__factory } from '../typechain'
+import { PrismToken, PrismToken__factory } from '../typechain'
+import { writeFileSync } from 'fs';
+import { join } from 'path';
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
 
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  let contractProjects: PrismProjects
+  let contractTokens: PrismToken
+  let contractMinting: PrismMinting
 
-  await greeter.deployed();
+  const [deployer] = await ethers.getSigners();
+  console.log("Deploying contracts with the account:", deployer.address);
+  console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  console.log("Greeter deployed to:", greeter.address);
+  const PrismProjectFactory = (await ethers.getContractFactory(
+    'PrismProjects',
+    deployer,
+  )) as PrismProjects__factory
+  contractProjects = (await PrismProjectFactory.deploy({ gasPrice: 40000000000 }
+  )) as PrismProjects
+  console.log("Project address:", contractProjects.address);
+
+
+  // TOKEN contract
+  const PrismTokenFactory = (await ethers.getContractFactory(
+    'PrismToken',
+    deployer,
+  )) as PrismToken__factory
+  contractTokens = (await PrismTokenFactory.deploy(contractProjects.address, { gasPrice: 40000000000, gasLimit: 10000000 })) as PrismToken
+  console.log("Token address:", contractTokens.address);
+  await contractTokens.deployed()
+
+
+  // Minting contract
+  const PrismMintingFactory = (await ethers.getContractFactory(
+    'PrismMinting',
+    deployer,
+  )) as PrismMinting__factory
+  contractMinting = (await PrismMintingFactory.deploy(1100, { gasPrice: 40000000000 })) as PrismMinting
+  console.log("Minting address:", contractMinting.address);
+  await contractMinting.deployed()
+
+
+  const data = {
+    "PrismProjects": contractProjects.address,
+    "PrismTokens": contractTokens.address,
+    "PrismMinting": contractMinting.address
+  }
+  writeFileSync(join(__dirname, './address/contractAddresses.json'), JSON.stringify(data), {
+    flag: 'w',
+  });
+
+  // Link Project to Token
+  await contractProjects.setPrismTokenContract(contractTokens.address)
+  // Link Minting to Token
+  await contractMinting.setPrismTokensContract(contractTokens.address)
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
