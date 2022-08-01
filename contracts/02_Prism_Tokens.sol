@@ -748,7 +748,7 @@ contract PrismToken is ERC1155, Ownable, IERC2981 {
     ) 
     public
   {
-       for (uint256 i= 0; i < _quantity; i++) {
+      for (uint256 i= 0; i < _quantity; i++) {
         createToken(_name, "CANVAS NFT", _price, "", canvasAttributesName, canvasAttributesValue, _collectionId, 1, _name, PrismToken.AssetType.CANVAS);
       }
   }

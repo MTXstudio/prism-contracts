@@ -123,7 +123,20 @@ describe('Prism', () => {
     expect((await nftTokens.layersOfCanvas(3))[2]).equal(undefined)
   });
 
+  it('automatic unequip of layers when canvas is transfered', async () => {
+    
+    await nftTokens.connect(collectionManager).mintBatch([1,2,3],[1,3,1],collectionManager.address,[])
+    await (await nftTokens.connect(collectionManager).editCanvas(3,[2,2,2]))
+    expect((await nftTokens.layersOfCanvas(3))[0].eq(2))
+    expect((await nftTokens.layersOfCanvas(3))[1].eq(2))
+    expect((await nftTokens.layersOfCanvas(3))[2].eq(2))
 
+    await (await nftTokens.connect(collectionManager).safeTransferFrom(collectionManager.address,secondBuyer.address,3, 1, '0x3333'))
+    expect((await nftTokens.layersOfCanvas(3))[0]).equal(undefined)
+    expect((await nftTokens.layersOfCanvas(3))[1]).equal(undefined)
+    expect((await nftTokens.layersOfCanvas(3))[2]).equal(undefined)
+    
+  });
 
   it('unpause collection and token', async () => {
     
